@@ -1,6 +1,7 @@
 package com.example.talentmanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -8,8 +9,10 @@ import java.util.List;
 public class Wissensgebiet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
+    @Schema(description = "Name des Wissensgebiets", example = "Informatik", required = true)
     @Column(nullable = false, unique = true)
     private String name;
 
