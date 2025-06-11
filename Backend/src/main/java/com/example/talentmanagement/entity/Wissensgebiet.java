@@ -12,7 +12,7 @@ public class Wissensgebiet {
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
-    @Schema(description = "Name des Wissensgebiets", example = "Informatik", required = true)
+    @Schema(description = "Name des Wissensgebiets", example = "ABAP", required = true)
     @Column(nullable = false, unique = true)
     private String name;
 
