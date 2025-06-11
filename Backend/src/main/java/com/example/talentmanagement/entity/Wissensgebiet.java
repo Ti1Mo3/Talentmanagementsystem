@@ -1,5 +1,6 @@
 package com.example.talentmanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -15,5 +16,34 @@ public class Wissensgebiet {
     @OneToMany(mappedBy = "wissensgebiet")
     private List<Wissensbereich> wissensbereiche;
 
-    // Getter, Setter, Constructor
+    public Wissensgebiet() {}
+
+    public Wissensgebiet(String name) {
+        this.name = name;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @JsonIgnore
+    public List<Wissensbereich> getWissensbereiche() {
+        return wissensbereiche;
+    }
+
+    public void setWissensbereiche(List<Wissensbereich> wissensbereiche) {
+        this.wissensbereiche = wissensbereiche;
+    }
 }
