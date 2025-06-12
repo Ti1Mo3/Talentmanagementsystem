@@ -28,6 +28,16 @@
         </form>
       </div>
     </div>
+    <div v-if="showDeleteModal" class="modal-overlay">
+      <div class="modal">
+        <h3>Wissensgebiet löschen</h3>
+        <p>Möchten Sie das Wissensgebiet "{{ areaToDelete?.name }}" wirklich löschen?</p>
+        <div class="modal-actions">
+          <button class="save-btn" @click="confirmDeleteArea">Löschen</button>
+          <button class="cancel-btn" @click="cancelDeleteArea">Abbrechen</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -40,6 +50,8 @@ const store = useKnowledgeStore();
 const areas = ref<any[]>([]);
 const newAreaName = ref('');
 const adding = ref(false);
+const showDeleteModal = ref(false);
+const areaToDelete = ref<any | null>(null);
 
 async function fetchAreas() {
   store.setLoading(true);
@@ -62,7 +74,28 @@ function editArea(area: any) {
   // Edit-Logik
 }
 function deleteArea(area: any) {
-  // Delete-Logik
+  areaToDelete.value = area;
+  showDeleteModal.value = true;
+}
+async function confirmDeleteArea() {
+  if (!areaToDelete.value) return;
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    await apiService.delete(`/wissensgebiet/${areaToDelete.value.id}`);
+    areas.value = areas.value.filter(a => a.id !== areaToDelete.value.id);
+    store.setItems(areas.value);
+    showDeleteModal.value = false;
+    areaToDelete.value = null;
+  } catch (error: any) {
+    store.setError('Fehler beim Löschen des Wissensgebiets');
+  } finally {
+    store.setLoading(false);
+  }
+}
+function cancelDeleteArea() {
+  showDeleteModal.value = false;
+  areaToDelete.value = null;
 }
 function addArea() {
   adding.value = true;
@@ -231,6 +264,36 @@ h2 {
 }
 .cancel-btn:hover {
   background: #cbd5e1;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 41, 59, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(37,99,235,0.13);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  min-width: 300px;
+  max-width: 90vw;
+  text-align: center;
+}
+.modal h3 {
+  margin-bottom: 0.7rem;
+  color: #ef4444;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.2rem;
 }
 @media (max-width: 600px) {
   .knowledge-areas-table {
