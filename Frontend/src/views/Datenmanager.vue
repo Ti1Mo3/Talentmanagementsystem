@@ -58,12 +58,10 @@ function onMenuSelect(key: string) {
   width: 100%;
   background: #fff;
   border-radius: 0;
-  padding: 2rem;
   box-shadow: none;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  overflow-y: auto;
 }
 
 @media (max-width: 1200px) {
