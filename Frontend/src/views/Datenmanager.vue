@@ -1,43 +1,94 @@
 <template>
   <div class="datenmanager">
-    <h1>Datenmanager</h1>
-    <button @click="fetchItems">Wissensbausteine laden</button>
-    <ul>
-      <li v-for="item in items" :key="item.id">
-        {{ item.name }}
-        <!-- Bearbeiten/Löschen Buttons -->
-      </li>
-    </ul>
-    <div v-if="loading">Lade Daten...</div>
-    <div v-if="error" class="error">{{ error }}</div>
+    <TmsHeader :selectedMenu="selectedMenu" @menu-select="onMenuSelect" />
+    <div class="content-area">
+      <component :is="currentComponent" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useKnowledgeStore } from '../store/knowledge';
-import apiService from '../services/apiService';
+import { ref, computed } from 'vue';
+import TmsHeader from '../components/TmsHeader.vue';
+import KnowledgeAreasManager from '../components/KnowledgeAreasManager.vue';
+import KnowledgeDomainsManager from '../components/KnowledgeDomainsManager.vue';
+import KnowledgeModulesManager from '../components/KnowledgeModulesManager.vue';
+import LearningPathsManager from '../components/LearningPathsManager.vue';
 
-const store = useKnowledgeStore();
-const { items, loading, error } = store;
+const menuItems = [
+  { key: 'areas', label: 'Wissensgebiete verwalten', component: KnowledgeAreasManager },
+  { key: 'domains', label: 'Wissensbereiche verwalten', component: KnowledgeDomainsManager },
+  { key: 'modules', label: 'Wissensbausteine verwalten', component: KnowledgeModulesManager },
+  { key: 'paths', label: 'Ausbildungspfade verwalten', component: LearningPathsManager },
+];
 
-const fetchItems = async () => {
-  store.setLoading(true);
-  store.setError(null);
-  try {
-    const response = await apiService.get('/knowledge');
-    store.setItems(response.data);
-  } catch (e: any) {
-    store.setError(e.message || 'Fehler beim Laden');
-  } finally {
-    store.setLoading(false);
-  }
-};
+const selectedMenu = ref('areas');
+const currentComponent = computed(() => {
+  const found = menuItems.find((item) => item.key === selectedMenu.value);
+  return found ? found.component : null;
+});
 
-onMounted(fetchItems);
+function onMenuSelect(key: string) {
+  selectedMenu.value = key;
+}
 </script>
 
 <style scoped>
-.datenmanager { max-width: 600px; margin: 2rem auto; }
-.error { color: red; }
+.datenmanager {
+  height: 100%;   
+  width: 100%;      
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #f8fafc;
+  margin: 0;
+}
+
+.menu-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: transparent;
+}
+
+.content-area {
+  flex-grow: 1;
+  width: 100%;
+  background: #fff;
+  border-radius: 0;
+  padding: 2rem;
+  box-shadow: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+@media (max-width: 1200px) {
+  .content-area {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .content-area {
+    padding: 1rem;
+  }
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .menu-bar {
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+  }
+}
 </style>
