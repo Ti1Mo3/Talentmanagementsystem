@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api', // Passe die Basis-URL ggf. an
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api', // Für Produktion per .env, sonst Proxy
   timeout: 10000,
 });
 

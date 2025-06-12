@@ -27,12 +27,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import apiService from '../services/apiService';
+import { useKnowledgeStore } from '../store/knowledge';
 
-const areas = ref([
-  { id: 1, name: 'Abakus' },
-  { id: 2, name: 'CMS' },
-]);
+const store = useKnowledgeStore();
+const areas = ref<any[]>([]);
+
+async function fetchAreas() {
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    const response = await apiService.get('/wissensgebiet');
+    console.log('Wissensgebiete geladen:', response.data);
+    areas.value = response.data;
+    store.setItems(response.data);
+  } catch (error: any) {
+    store.setError('Fehler beim Laden der Wissensgebiete');
+  } finally {
+    store.setLoading(false);
+  }
+}
+
+onMounted(fetchAreas);
 
 function editArea(area: any) {
   // Edit-Logik
