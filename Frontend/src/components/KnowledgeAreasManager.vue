@@ -7,8 +7,13 @@
         <span class="actions-header"></span>
       </div>
       <div class="table-row" v-for="area in areas" :key="area.id">
-        <span>{{ area.name }}</span>
-        <span class="actions">
+        <span v-if="editingId !== area.id">{{ area.name }}</span>
+        <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
+          <input v-model="editedName" type="text" class="add-input" autofocus />
+          <button type="submit" class="save-btn" :disabled="!editedName.trim()">Speichern</button>
+          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
+        </form>
+        <span class="actions" v-if="editingId !== area.id">
           <button class="icon-btn" @click="editArea(area)" title="Bearbeiten">
             <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="#2563eb" stroke-width="1.5"/><path d="M13.06 6.44l1.5-1.5a1 1 0 0 1 1.41 0l0.59 0.59a1 1 0 0 1 0 1.41l-1.5 1.5-2.5-2.5z" stroke="#2563eb" stroke-width="1.5"/></svg>
           </button>
@@ -52,6 +57,8 @@ const newAreaName = ref('');
 const adding = ref(false);
 const showDeleteModal = ref(false);
 const areaToDelete = ref<any | null>(null);
+const editingId = ref<number | null>(null);
+const editedName = ref('');
 
 async function fetchAreas() {
   store.setLoading(true);
@@ -71,8 +78,36 @@ async function fetchAreas() {
 onMounted(fetchAreas);
 
 function editArea(area: any) {
-  // Edit-Logik
+  editingId.value = area.id;
+  editedName.value = area.name;
 }
+
+function cancelEdit() {
+  editingId.value = null;
+  editedName.value = '';
+}
+
+async function saveEditArea(area: any) {
+  if (!editedName.value.trim()) return;
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    const response = await apiService.put(`/wissensgebiet/${area.id}`, { name: editedName.value });
+    // Update local list
+    const idx = areas.value.findIndex((a) => a.id === area.id);
+    if (idx !== -1) {
+      areas.value[idx] = response.data;
+      store.setItems(areas.value);
+    }
+    editingId.value = null;
+    editedName.value = '';
+  } catch (error: any) {
+    store.setError('Fehler beim Bearbeiten des Wissensgebiets');
+  } finally {
+    store.setLoading(false);
+  }
+}
+
 function deleteArea(area: any) {
   areaToDelete.value = area;
   showDeleteModal.value = true;
