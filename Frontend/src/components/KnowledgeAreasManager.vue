@@ -18,9 +18,14 @@
         </span>
       </div>
       <div class="add-row">
-        <button class="add-btn" @click="addArea" title="Neues Wissensgebiet hinzufügen">
+        <button class="add-btn" @click="addArea" title="Neues Wissensgebiet hinzufügen" v-if="!adding">
           <svg width="28" height="28" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M10 6v8M6 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
+        <form v-else @submit.prevent="saveNewArea" class="add-form">
+          <input v-model="newAreaName" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
+          <button type="submit" class="save-btn" :disabled="!newAreaName.trim()">Speichern</button>
+          <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+        </form>
       </div>
     </div>
   </div>
@@ -33,6 +38,8 @@ import { useKnowledgeStore } from '../store/knowledge';
 
 const store = useKnowledgeStore();
 const areas = ref<any[]>([]);
+const newAreaName = ref('');
+const adding = ref(false);
 
 async function fetchAreas() {
   store.setLoading(true);
@@ -58,7 +65,30 @@ function deleteArea(area: any) {
   // Delete-Logik
 }
 function addArea() {
-  // Add-Logik
+  adding.value = true;
+  newAreaName.value = '';
+}
+
+async function saveNewArea() {
+  if (!newAreaName.value.trim()) return;
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    const response = await apiService.post('/wissensgebiet', { name: newAreaName.value });
+    areas.value.unshift(response.data); // Neu oben einfügen
+    store.setItems(areas.value);
+    adding.value = false;
+    newAreaName.value = '';
+  } catch (error: any) {
+    store.setError('Fehler beim Hinzufügen des Wissensgebiets');
+  } finally {
+    store.setLoading(false);
+  }
+}
+
+function cancelAdd() {
+  adding.value = false;
+  newAreaName.value = '';
 }
 </script>
 
@@ -161,6 +191,46 @@ h2 {
 .add-btn svg {
   width: 1.6em;
   height: 1.6em;
+}
+.add-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.2rem;
+}
+.add-input {
+  flex: 1;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.save-btn {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.4rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.save-btn:disabled {
+  background: #a7f3d0;
+  cursor: not-allowed;
+}
+.cancel-btn {
+  background: #e0e7ef;
+  color: #334155;
+  border: none;
+  border-radius: 5px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cancel-btn:hover {
+  background: #cbd5e1;
 }
 @media (max-width: 600px) {
   .knowledge-areas-table {
