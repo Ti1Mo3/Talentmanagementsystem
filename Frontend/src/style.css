@@ -12,6 +12,7 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
+  padding-top: 62px; /* Platz für fixierten Header schaffen */
   overflow-x: hidden; /* Nur horizontale Scrollbar ausblenden */
   overflow-y: auto;    /* Vertikale Scrollbar nur wenn nötig */
   scrollbar-width: auto;
@@ -24,5 +25,12 @@ body::-webkit-scrollbar:horizontal {
 body::-webkit-scrollbar:vertical {
   display: block !important;
   width: initial !important;
+}
+
+.tms-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
