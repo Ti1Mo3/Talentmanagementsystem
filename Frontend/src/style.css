@@ -1,27 +1,6 @@
-html {
+html, body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
-  /* Kein overflow-y auf html! */
-}
-
-body {
-  min-height: 100vh;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden; /* Nur horizontale Scrollbar ausblenden */
-  overflow-y: auto;    /* Vertikale Scrollbar nur wenn nötig */
-  scrollbar-width: auto;
-}
-
-body::-webkit-scrollbar:horizontal {
-  display: none !important;
-  height: 0 !important;
-}
-body::-webkit-scrollbar:vertical {
-  display: block !important;
-  width: initial !important;
 }

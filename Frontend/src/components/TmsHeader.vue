@@ -38,10 +38,6 @@ const menuItems = [
 
 <style scoped>
 .tms-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100;
   width: 100vw;
   background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%);
   display: flex;
@@ -123,9 +119,6 @@ const menuItems = [
   border-radius: 50%;
   padding: 0.18rem;
 }
-body {
-  padding-top: 62px; /* Platz für fixierten Header schaffen */
-}
 @media (max-width: 900px) {
   .tms-header {
     flex-direction: column;
@@ -133,8 +126,11 @@ body {
     padding: 0.7rem 1vw;
     border-radius: 0 0 12px 12px;
   }
-  body {
-    padding-top: 80px;
+  .tms-header-left {
+    gap: 1vw;
+  }
+  .tms-nav {
+    gap: 0.5vw;
   }
 }
 @media (max-width: 600px) {
@@ -150,9 +146,6 @@ body {
   .tms-nav-link {
     font-size: 1rem;
     padding: 0.13rem 0.5rem;
-  }
-  body {
-    padding-top: 90px;
   }
 }
 </style>
