@@ -20,26 +20,27 @@ public class WissensgebietController {
         this.wissensgebietRepository = wissensgebietRepository;
     }
 
-    @Operation(summary = "Fügt ein neues Wissensgebiet hinzu", description = "Legt ein neues Wissensgebiet mit dem angegebenen Namen an.")
+    @Operation(summary = "Fügt ein neues Wissensgebiet hinzu", description = "Legt ein neues Wissensgebiet mit dem angegebenen Namen und Einarbeitung an.")
     @PostMapping
     public ResponseEntity<Wissensgebiet> addWissensgebiet(@Valid @RequestBody Wissensgebiet wissensgebiet) {
         Wissensgebiet saved = wissensgebietRepository.save(wissensgebiet);
         return ResponseEntity.ok(saved);
     }
 
-    @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete zurück.")
+    @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.")
     @GetMapping
     public ResponseEntity<List<Wissensgebiet>> getAllWissensgebiete() {
         List<Wissensgebiet> list = wissensgebietRepository.findAll();
         return ResponseEntity.ok(list);
     }
 
-    @Operation(summary = "Aktualisiert ein Wissensgebiet", description = "Aktualisiert den Namen eines bestehenden Wissensgebiets anhand der ID.")
+    @Operation(summary = "Aktualisiert ein Wissensgebiet", description = "Aktualisiert den Namen und das Einarbeitung-Flag eines bestehenden Wissensgebiets anhand der ID.")
     @PutMapping("/{id}")
     public ResponseEntity<Wissensgebiet> updateWissensgebiet(@PathVariable Long id, @Valid @RequestBody Wissensgebiet wissensgebiet) {
         return wissensgebietRepository.findById(id)
             .map(existing -> {
                 existing.setName(wissensgebiet.getName());
+                existing.setEinarbeitung(wissensgebiet.getEinarbeitung());
                 Wissensgebiet updated = wissensgebietRepository.save(existing);
                 return ResponseEntity.ok(updated);
             })

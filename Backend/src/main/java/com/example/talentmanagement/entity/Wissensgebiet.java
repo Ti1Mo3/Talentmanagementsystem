@@ -16,6 +16,10 @@ public class Wissensgebiet {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Schema(description = "Gibt an, ob das Wissensgebiet eingearbeitet werden muss", example = "true", required = true)
+    @Column(nullable = false)
+    private Boolean einarbeitung = false;
+
     @OneToMany(mappedBy = "wissensgebiet")
     private List<Wissensbereich> wissensbereiche;
 
@@ -39,6 +43,14 @@ public class Wissensgebiet {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getEinarbeitung() {
+        return einarbeitung;
+    }
+
+    public void setEinarbeitung(Boolean einarbeitung) {
+        this.einarbeitung = einarbeitung;
     }
 
     @JsonIgnore
