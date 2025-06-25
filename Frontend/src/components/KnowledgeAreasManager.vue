@@ -4,13 +4,23 @@
     <div class="knowledge-areas-table">
       <div class="table-header">
         <span>Wissensgebiet</span>
+        <span>Einarbeitung</span>
         <span class="actions-header"></span>
       </div>
       <div class="table-row" v-for="area in areas" :key="area.id">
         <span v-if="editingId !== area.id">{{ area.name }}</span>
         <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
-          <input v-model="editedName" type="text" class="add-input" autofocus />
-          <button type="submit" class="save-btn" :disabled="!editedName.trim()">Speichern</button>
+          <input v-model="editedArea.name" type="text" class="add-input" autofocus />
+        </form>
+        <span v-if="editingId !== area.id">
+          <input type="checkbox" disabled :checked="area.einarbeitung" />
+        </span>
+        <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
+          <label style="display:flex;align-items:center;gap:0.5em;">
+            <input type="checkbox" v-model="editedArea.einarbeitung" />
+            Einarbeitung erforderlich
+          </label>
+          <button type="submit" class="save-btn" :disabled="!editedArea.name?.trim()">Speichern</button>
           <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
         </form>
         <span class="actions" v-if="editingId !== area.id">
@@ -27,8 +37,12 @@
           <svg width="28" height="28" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M10 6v8M6 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <form v-else @submit.prevent="saveNewArea" class="add-form">
-          <input v-model="newAreaName" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
-          <button type="submit" class="save-btn" :disabled="!newAreaName.trim()">Speichern</button>
+          <input v-model="newArea.name" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
+          <label style="display:flex;align-items:center;gap:0.5em;">
+            <input type="checkbox" v-model="newArea.einarbeitung" />
+            Einarbeitung erforderlich
+          </label>
+          <button type="submit" class="save-btn" :disabled="!newArea.name?.trim()">Speichern</button>
           <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
         </form>
       </div>
@@ -50,15 +64,16 @@
 import { ref, onMounted } from 'vue';
 import apiService from '../services/apiService';
 import { useKnowledgeStore } from '../store/knowledge';
+import type { KnowledgeArea } from '../models/KnowledgeArea';
 
 const store = useKnowledgeStore();
-const areas = ref<any[]>([]);
-const newAreaName = ref('');
+const areas = ref<KnowledgeArea[]>([]);
+const newArea = ref<Partial<KnowledgeArea>>({ name: '', einarbeitung: false });
 const adding = ref(false);
 const showDeleteModal = ref(false);
-const areaToDelete = ref<any | null>(null);
+const areaToDelete = ref<KnowledgeArea | null>(null);
 const editingId = ref<number | null>(null);
-const editedName = ref('');
+const editedArea = ref<Partial<KnowledgeArea>>({ name: '', einarbeitung: false });
 
 async function fetchAreas() {
   store.setLoading(true);
@@ -77,30 +92,32 @@ async function fetchAreas() {
 
 onMounted(fetchAreas);
 
-function editArea(area: any) {
+function editArea(area: KnowledgeArea) {
   editingId.value = area.id;
-  editedName.value = area.name;
+  editedArea.value = { name: area.name, einarbeitung: area.einarbeitung };
 }
 
 function cancelEdit() {
   editingId.value = null;
-  editedName.value = '';
+  editedArea.value = { name: '', einarbeitung: false };
 }
 
-async function saveEditArea(area: any) {
-  if (!editedName.value.trim()) return;
+async function saveEditArea(area: KnowledgeArea) {
+  if (!editedArea.value.name?.trim()) return;
   store.setLoading(true);
   store.setError(null);
   try {
-    const response = await apiService.put(`/wissensgebiet/${area.id}`, { name: editedName.value });
-    // Update local list
+    const response = await apiService.put(`/wissensgebiet/${area.id}`, {
+      name: editedArea.value.name,
+      einarbeitung: editedArea.value.einarbeitung
+    });
     const idx = areas.value.findIndex((a) => a.id === area.id);
     if (idx !== -1) {
       areas.value[idx] = response.data;
       store.setItems(areas.value);
     }
     editingId.value = null;
-    editedName.value = '';
+    editedArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {
     store.setError('Fehler beim Bearbeiten des Wissensgebiets');
   } finally {
@@ -108,7 +125,7 @@ async function saveEditArea(area: any) {
   }
 }
 
-function deleteArea(area: any) {
+function deleteArea(area: KnowledgeArea) {
   areaToDelete.value = area;
   showDeleteModal.value = true;
 }
@@ -118,7 +135,7 @@ async function confirmDeleteArea() {
   store.setError(null);
   try {
     await apiService.delete(`/wissensgebiet/${areaToDelete.value.id}`);
-    areas.value = areas.value.filter(a => a.id !== areaToDelete.value.id);
+    areas.value = areas.value.filter(a => a.id !== areaToDelete.value!.id);
     store.setItems(areas.value);
     showDeleteModal.value = false;
     areaToDelete.value = null;
@@ -134,19 +151,22 @@ function cancelDeleteArea() {
 }
 function addArea() {
   adding.value = true;
-  newAreaName.value = '';
+  newArea.value = { name: '', einarbeitung: false };
 }
 
 async function saveNewArea() {
-  if (!newAreaName.value.trim()) return;
+  if (!newArea.value.name?.trim()) return;
   store.setLoading(true);
   store.setError(null);
   try {
-    const response = await apiService.post('/wissensgebiet', { name: newAreaName.value });
-    areas.value.unshift(response.data); // Neu oben einfügen
+    const response = await apiService.post('/wissensgebiet', {
+      name: newArea.value.name,
+      einarbeitung: newArea.value.einarbeitung
+    });
+    areas.value.unshift(response.data);
     store.setItems(areas.value);
     adding.value = false;
-    newAreaName.value = '';
+    newArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {
     store.setError('Fehler beim Hinzufügen des Wissensgebiets');
   } finally {
@@ -156,7 +176,7 @@ async function saveNewArea() {
 
 function cancelAdd() {
   adding.value = false;
-  newAreaName.value = '';
+  newArea.value = { name: '', einarbeitung: false };
 }
 </script>
 
@@ -177,111 +197,92 @@ h2 {
 }
 .knowledge-areas-table {
   width: 100%;
-  max-width: 420px;
+  max-width: 800px;
+  min-width: 400px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(37,99,235,0.07);
-  padding: 1.5rem 1rem 1rem 1rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(37,99,235,0.09);
+  padding: 2.5rem 2rem 2rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.7rem;
 }
 .table-header, .table-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.08rem;
-  padding: 0.3rem 0;
+  font-size: 1.12rem;
+  padding: 0.4rem 0;
 }
 .table-header {
   font-weight: 700;
   color: #334155;
-  border-bottom: 1px solid #e0e0e0;
-  margin-bottom: 0.5rem;
+  border-bottom: 1.5px solid #e0e0e0;
+  margin-bottom: 0.7rem;
 }
 .table-row {
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 0.2rem;
-  box-shadow: 0 1px 4px rgba(37,99,235,0.04);
-  padding: 0.5rem 0.8rem;
+  box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+  padding: 0.6rem 1rem;
   transition: box-shadow 0.2s;
 }
 .table-row:hover {
-  box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+  box-shadow: 0 2px 10px rgba(37,99,235,0.13);
 }
-.actions {
-  display: flex;
-  gap: 0.5rem;
-}
-.icon-btn {
-  background: none;
-  border: none;
-  color: #2563eb;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.2rem 0.3rem;
-  border-radius: 4px;
-  transition: background 0.2s, color 0.2s;
+.table-row > span, .table-row > form {
+  flex: 1;
   display: flex;
   align-items: center;
 }
-.icon-btn:hover {
-  background: #e0e7ef;
+.table-row > span:first-child {
+  flex: 2;
+}
+.table-row input[type="checkbox"] {
+  accent-color: #22c55e;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.5em;
+  cursor: pointer;
 }
 .add-row {
   display: flex;
   justify-content: flex-start;
-  margin-top: 0.7rem;
-}
-.add-btn {
-  background: none;
-  border: none;
-  border-radius: 50%;
-  width: 2.2rem;
-  height: 2.2rem;
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: none;
-  padding: 0;
-}
-.add-btn:hover {
-  background: #22c55e22;
-}
-.icon-btn svg {
-  width: 1.3em;
-  height: 1.3em;
-}
-.add-btn svg {
-  width: 1.6em;
-  height: 1.6em;
+  margin-top: 0.9rem;
+  gap: 0.7rem;
 }
 .add-form {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.7rem;
   align-items: center;
   margin-top: 0.2rem;
 }
 .add-input {
+  flex: 2;
+  padding: 0.45rem 0.8rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 1.05rem;
+}
+.add-form label {
   flex: 1;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
   font-size: 1rem;
+  color: #334155;
+  gap: 0.4em;
+  margin: 0;
+  font-weight: 500;
 }
 .save-btn {
   background: #22c55e;
   color: #fff;
   border: none;
   border-radius: 5px;
-  padding: 0.4rem 1rem;
+  padding: 0.45rem 1.1rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 1rem;
 }
 .save-btn:disabled {
   background: #a7f3d0;
@@ -292,10 +293,11 @@ h2 {
   color: #334155;
   border: none;
   border-radius: 5px;
-  padding: 0.4rem 0.8rem;
+  padding: 0.45rem 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 1rem;
 }
 .cancel-btn:hover {
   background: #cbd5e1;
@@ -337,6 +339,10 @@ h2 {
   }
   h2 {
     font-size: 1.1rem;
+  }
+  .table-header, .table-row {
+    font-size: 0.98rem;
+    padding: 0.2rem 0;
   }
 }
 </style>
