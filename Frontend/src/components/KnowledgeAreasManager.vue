@@ -211,7 +211,7 @@ h2 {
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(37,99,235,0.09);
-  padding: 2.5rem 2rem 2rem 2rem;
+  padding: 2.5rem 2rem 4rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
