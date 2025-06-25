@@ -22,7 +22,10 @@ public class WissensgebietController {
 
     @Operation(summary = "Fügt ein neues Wissensgebiet hinzu", description = "Legt ein neues Wissensgebiet mit dem angegebenen Namen und Einarbeitung an.")
     @PostMapping
-    public ResponseEntity<Wissensgebiet> addWissensgebiet(@Valid @RequestBody Wissensgebiet wissensgebiet) {
+    public ResponseEntity<?> addWissensgebiet(@Valid @RequestBody Wissensgebiet wissensgebiet) {
+        if (wissensgebietRepository.findAll().stream().anyMatch(wg -> wg.getName().equalsIgnoreCase(wissensgebiet.getName()))) {
+            return ResponseEntity.badRequest().body("Ein Wissensgebiet mit diesem Namen existiert bereits.");
+        }
         Wissensgebiet saved = wissensgebietRepository.save(wissensgebiet);
         return ResponseEntity.ok(saved);
     }

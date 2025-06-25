@@ -46,6 +46,7 @@
           <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
         </form>
       </div>
+      <div v-if="addError" class="add-error">{{ addError }}</div>
     </div>
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal">
@@ -74,6 +75,7 @@ const showDeleteModal = ref(false);
 const areaToDelete = ref<KnowledgeArea | null>(null);
 const editingId = ref<number | null>(null);
 const editedArea = ref<Partial<KnowledgeArea>>({ name: '', einarbeitung: false });
+const addError = ref<string | null>(null);
 
 async function fetchAreas() {
   store.setLoading(true);
@@ -158,6 +160,7 @@ async function saveNewArea() {
   if (!newArea.value.name?.trim()) return;
   store.setLoading(true);
   store.setError(null);
+  addError.value = null;
   try {
     const response = await apiService.post('/wissensgebiet', {
       name: newArea.value.name,
@@ -168,7 +171,12 @@ async function saveNewArea() {
     adding.value = false;
     newArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {
-    store.setError('Fehler beim Hinzufügen des Wissensgebiets');
+    // Backend-Fehlertext anzeigen, falls vorhanden
+    if (error?.response?.data) {
+      addError.value = error.response.data;
+    } else {
+      addError.value = 'Fehler beim Hinzufügen des Wissensgebiets';
+    }
   } finally {
     store.setLoading(false);
   }
@@ -177,6 +185,7 @@ async function saveNewArea() {
 function cancelAdd() {
   adding.value = false;
   newArea.value = { name: '', einarbeitung: false };
+  addError.value = null;
 }
 </script>
 
@@ -331,6 +340,18 @@ h2 {
   justify-content: center;
   gap: 1rem;
   margin-top: 1.2rem;
+}
+.add-error {
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.6em 1em;
+  margin-top: 0.7em;
+  font-size: 1.02rem;
+  font-weight: 600;
+  max-width: 500px;
+  box-shadow: 0 1px 4px rgba(239,68,68,0.07);
 }
 @media (max-width: 600px) {
   .knowledge-areas-table {
