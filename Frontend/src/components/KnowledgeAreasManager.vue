@@ -60,6 +60,15 @@
         </div>
       </div>
     </div>
+    <div v-if="editError" class="modal-overlay">
+      <div class="modal error-modal">
+        <h3>Fehler</h3>
+        <p>{{ editError }}</p>
+        <div class="modal-actions">
+          <button class="save-btn" @click="editError = null">OK</button>
+        </div>
+      </div>
+    </div>
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal">
         <h3>Wissensgebiet löschen</h3>
@@ -88,6 +97,7 @@ const areaToDelete = ref<KnowledgeArea | null>(null);
 const editingId = ref<number | null>(null);
 const editedArea = ref<Partial<KnowledgeArea>>({ name: '', einarbeitung: false });
 const addError = ref<string | null>(null);
+const editError = ref<string | null>(null);
 
 async function fetchAreas() {
   store.setLoading(true);
@@ -120,6 +130,7 @@ async function saveEditArea(area: KnowledgeArea) {
   if (!editedArea.value.name?.trim()) return;
   store.setLoading(true);
   store.setError(null);
+  editError.value = null;
   try {
     const response = await apiService.put(`/wissensgebiet/${area.id}`, {
       name: editedArea.value.name,
@@ -133,7 +144,12 @@ async function saveEditArea(area: KnowledgeArea) {
     editingId.value = null;
     editedArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {
-    store.setError('Fehler beim Bearbeiten des Wissensgebiets');
+    // Backend-Fehlertext anzeigen, falls vorhanden
+    if (error?.response?.data) {
+      editError.value = error.response.data;
+    } else {
+      editError.value = 'Fehler beim Bearbeiten des Wissensgebiets';
+    }
   } finally {
     store.setLoading(false);
   }
