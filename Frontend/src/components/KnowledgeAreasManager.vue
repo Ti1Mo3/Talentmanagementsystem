@@ -12,42 +12,47 @@
         <span class="actions-header"></span>
       </div>
       <div class="table-row" v-for="area in areas" :key="area.id">
-        <span v-if="editingId !== area.id">{{ area.name }}</span>
-        <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
-          <input v-model="editedArea.name" type="text" class="add-input" autofocus />
-        </form>
-        <span v-if="editingId !== area.id">
-          <input type="checkbox" disabled :checked="area.einarbeitung" />
-        </span>
-        <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
-          <label class="checkbox-label">
+        <template v-if="editingId !== area.id">
+          <span>{{ area.name }}</span>
+          <span>
+            <input type="checkbox" disabled :checked="area.einarbeitung" />
+          </span>
+          <span class="actions">
+            <button class="icon-btn" @click="editArea(area)" title="Bearbeiten">
+              <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="#2563eb" stroke-width="1.5"/><path d="M13.06 6.44l1.5-1.5a1 1 0 0 1 1.41 0l0.59 0.59a1 1 0 0 1 0 1.41l-1.5 1.5-2.5-2.5z" stroke="#2563eb" stroke-width="1.5"/></svg>
+            </button>
+            <button class="icon-btn" @click="deleteArea(area)" title="Löschen">
+              <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M6 7v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7" stroke="#ef4444" stroke-width="1.5"/><path d="M9 10v4m2-4v4M3 7h14M8 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="#334155" stroke-width="1.5"/></svg>
+            </button>
+          </span>
+        </template>
+        <template v-else>
+          <span>
+            <input v-model="editedArea.name" type="text" class="add-input" autofocus />
+          </span>
+          <span>
             <input type="checkbox" v-model="editedArea.einarbeitung" />
-            Einarbeitung erforderlich
-          </label>
-          <button type="submit" class="save-btn" :disabled="!editedArea.name?.trim()">Speichern</button>
-          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
-        </form>
-        <span class="actions" v-if="editingId !== area.id">
-          <button class="icon-btn" @click="editArea(area)" title="Bearbeiten">
-            <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="#2563eb" stroke-width="1.5"/><path d="M13.06 6.44l1.5-1.5a1 1 0 0 1 1.41 0l0.59 0.59a1 1 0 0 1 0 1.41l-1.5 1.5-2.5-2.5z" stroke="#2563eb" stroke-width="1.5"/></svg>
-          </button>
-          <button class="icon-btn" @click="deleteArea(area)" title="Löschen">
-            <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M6 7v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7" stroke="#ef4444" stroke-width="1.5"/><path d="M9 10v4m2-4v4M3 7h14M8 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="#334155" stroke-width="1.5"/></svg>
-          </button>
-        </span>
+          </span>
+          <span class="actions" style="gap: 0.7rem; margin-left: 1.5rem;">
+            <button class="save-btn" @click="saveEditArea(area)" :disabled="!editedArea.name?.trim()">Speichern</button>
+            <button class="cancel-btn" @click="cancelEdit">Abbrechen</button>
+          </span>
+        </template>
       </div>
       <div class="add-row">
         <button class="add-btn" @click="addArea" title="Neues Wissensgebiet hinzufügen" v-if="!adding">
           <svg width="28" height="28" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M10 6v8M6 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <form v-else @submit.prevent="saveNewArea" class="add-form">
+        <form v-else @submit.prevent="saveNewArea" class="add-form" style="gap: 0.7rem;">
           <input v-model="newArea.name" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
-          <label class="checkbox-label">
+          <label class="checkbox-label" style="margin-left: 1.2em;">
             <input type="checkbox" v-model="newArea.einarbeitung" />
             Einarbeitung erforderlich
           </label>
-          <button type="submit" class="save-btn" :disabled="!newArea.name?.trim()">Speichern</button>
-          <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+          <div style="display: flex; gap: 0.7rem; margin-left: 1.5rem;">
+            <button type="submit" class="save-btn" :disabled="!newArea.name?.trim()">Speichern</button>
+            <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+          </div>
         </form>
       </div>
     </div>

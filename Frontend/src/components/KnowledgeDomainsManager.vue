@@ -13,44 +13,28 @@
         <span class="actions-header"></span>
       </div>
       <div class="table-row" v-for="section in sections" :key="section.id">
-        <span>{{ section.wissensgebiet?.name }}</span>
+        <!-- Wissensgebiet -->
+        <span v-if="editingId !== section.id">{{ section.wissensgebiet?.name }}</span>
+        <span v-else>
+          <select v-model="editedSection.wissensgebietId" class="add-input" style="margin-right:1.2em;">
+            <option disabled value="">Wissensgebiet auswählen</option>
+            <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
+          </select>
+        </span>
+        <!-- Wissensbereich -->
         <span v-if="editingId !== section.id">{{ section.name }}</span>
-        <form v-else @submit.prevent="saveEditSection(section)" class="add-form" style="flex:1;">
-          <label style="display:flex;align-items:center;gap:0.7em;">
-            <span style="min-width:120px;">Wissensgebiet:</span>
-            <select v-model="editedSection.wissensgebietId" class="add-input">
-              <option disabled value="">Wissensgebiet auswählen</option>
-              <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
-            </select>
-          </label>
-          <input v-model="editedSection.name" type="text" class="add-input" placeholder="Name des Wissensbereichs" style="margin-left:0;" />
-          <label style="display:flex;align-items:center;gap:0.7em;">
-            <input type="checkbox" v-model="editedSection.einarbeitung" />
-            Einarbeitung erforderlich
-          </label>
-          <button type="submit" class="save-btn" :disabled="!editedSection.name?.trim()">Speichern</button>
-          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
-        </form>
+        <span v-else>
+          <input v-model="editedSection.name" type="text" class="add-input" placeholder="Name des Wissensbereichs" />
+        </span>
+        <!-- Einarbeitung -->
         <span v-if="editingId !== section.id">
           <input type="checkbox" disabled :checked="section.einarbeitung" />
         </span>
-        <form v-else @submit.prevent="saveEditSection(section)" class="add-form" style="flex:1;">
-          <label style="display:flex;align-items:center;gap:0.7em;">
-            <span style="min-width:120px;">Wissensgebiet:</span>
-            <select v-model="editedSection.wissensgebietId" class="add-input">
-              <option disabled value="">Wissensgebiet auswählen</option>
-              <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
-            </select>
-          </label>
-          <input v-model="editedSection.name" type="text" class="add-input" placeholder="Name des Wissensbereichs" style="margin-left:0;" />
-          <label style="display:flex;align-items:center;gap:0.7em;">
-            <input type="checkbox" v-model="editedSection.einarbeitung" />
-            Einarbeitung erforderlich
-          </label>
-          <button type="submit" class="save-btn" :disabled="!editedSection.name?.trim()">Speichern</button>
-          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
-        </form>
-        <span class="actions" v-if="editingId !== section.id">
+        <span v-else>
+          <input type="checkbox" v-model="editedSection.einarbeitung" />
+        </span>
+        <!-- Aktionen -->
+        <span v-if="editingId !== section.id" class="actions">
           <button class="icon-btn" @click="editSection(section)" title="Bearbeiten">
             <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="#2563eb" stroke-width="1.5"/><path d="M13.06 6.44l1.5-1.5a1 1 0 0 1 1.41 0l0.59 0.59a1 1 0 0 1 0 1.41l-1.5 1.5-2.5-2.5z" stroke="#2563eb" stroke-width="1.5"/></svg>
           </button>
@@ -58,26 +42,30 @@
             <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M6 7v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7" stroke="#ef4444" stroke-width="1.5"/><path d="M9 10v4m2-4v4M3 7h14M8 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="#334155" stroke-width="1.5"/></svg>
           </button>
         </span>
+        <span v-else class="actions" style="gap: 0.7rem; margin-left: 1.5rem;">
+          <button type="button" class="save-btn" @click="saveEditSection(section)" :disabled="!editedSection.name?.trim()">Speichern</button>
+          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
+        </span>
       </div>
       <div class="add-row">
         <button class="add-btn" @click="addSection" title="Neuen Wissensbereich hinzufügen" v-if="!adding">
           <svg width="28" height="28" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M10 6v8M6 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <form v-else @submit.prevent="saveNewSection" class="add-form">
-          <label style="display:flex;align-items:center;gap:0.7em;">
-            <span style="min-width:120px;">Wissensgebiet:</span>
-            <select v-model="newSection.wissensgebietId" class="add-input">
-              <option disabled value="">Wissensgebiet auswählen</option>
-              <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
-            </select>
-          </label>
-          <input v-model="newSection.name" type="text" placeholder="Name des Wissensbereichs" autofocus class="add-input" style="margin-left:0;" />
-          <label style="display:flex;align-items:center;gap:0.7em;">
+        <form v-else @submit.prevent="saveNewSection" class="add-form add-form-grid">
+          <label class="add-label">Wissensgebiet</label>
+          <select v-model="newSection.wissensgebietId" class="add-input">
+            <option disabled value="">Wissensgebiet auswählen</option>
+            <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
+          </select>
+          <input v-model="newSection.name" type="text" placeholder="Name des Wissensbereichs" autofocus class="add-input" />
+          <label class="checkbox-label">
             <input type="checkbox" v-model="newSection.einarbeitung" />
             Einarbeitung erforderlich
           </label>
-          <button type="submit" class="save-btn" :disabled="!newSection.name?.trim()">Speichern</button>
-          <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+          <div style="display: flex; gap: 0.7rem;">
+            <button type="submit" class="save-btn" :disabled="!newSection.name?.trim()">Speichern</button>
+            <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+          </div>
         </form>
       </div>
     </div>
@@ -176,13 +164,11 @@ async function saveEditSection(section: KnowledgeSection) {
   store.setError(null);
   editError.value = null;
   try {
-    const response = await apiService.put(`/wissensbereich/${section.id}`,
-      {
-        name: editedSection.value.name,
-        einarbeitung: editedSection.value.einarbeitung,
-        wissensgebietId: editedSection.value.wissensgebietId,
-      }
-    );
+    const response = await apiService.put(`/wissensbereich/${section.id}`, {
+      name: editedSection.value.name,
+      einarbeitung: editedSection.value.einarbeitung,
+      wissensgebiet: { id: editedSection.value.wissensgebietId },
+    });
     const idx = sections.value.findIndex((s) => s.id === section.id);
     if (idx !== -1) {
       sections.value[idx] = response.data;
@@ -362,6 +348,14 @@ h2 {
   margin-top: 0.2rem;
   overflow: visible;
 }
+.add-form.add-form-grid {
+  display: grid;
+  grid-template-columns: auto 1.5fr 1.5fr 1.2fr 1.2fr;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.2rem;
+  overflow: visible;
+}
 .add-input {
   flex: unset;
   width: 100%;
@@ -371,6 +365,13 @@ h2 {
   font-size: 1.05rem;
   position: relative;
   z-index: 1;
+}
+.add-label {
+  font-weight: 600;
+  color: #334155;
+  margin-right: 0;
+  margin-left: 0;
+  white-space: nowrap;
 }
 .add-form label {
   display: flex;
