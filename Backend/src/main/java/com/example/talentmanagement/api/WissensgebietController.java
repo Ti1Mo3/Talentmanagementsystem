@@ -39,7 +39,11 @@ public class WissensgebietController {
 
     @Operation(summary = "Aktualisiert ein Wissensgebiet", description = "Aktualisiert den Namen und das Einarbeitung-Flag eines bestehenden Wissensgebiets anhand der ID.")
     @PutMapping("/{id}")
-    public ResponseEntity<Wissensgebiet> updateWissensgebiet(@PathVariable Long id, @Valid @RequestBody Wissensgebiet wissensgebiet) {
+    public ResponseEntity<?> updateWissensgebiet(@PathVariable Long id, @Valid @RequestBody Wissensgebiet wissensgebiet) {
+        // Eindeutigkeitsprüfung für Name (außer beim eigenen Datensatz)
+        if (wissensgebietRepository.existsByNameAndIdNot(wissensgebiet.getName(), id)) {
+            return ResponseEntity.badRequest().body("Ein Wissensgebiet mit diesem Namen existiert bereits.");
+        }
         return wissensgebietRepository.findById(id)
             .map(existing -> {
                 existing.setName(wissensgebiet.getName());

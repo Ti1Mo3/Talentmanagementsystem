@@ -1,7 +1,11 @@
 <template>
   <div class="knowledge-areas-wrapper">
     <h2>Wissensgebiete verwalten</h2>
-    <div class="knowledge-areas-table">
+    <div v-if="store.loading" class="loading-indicator">
+      <svg class="spinner" width="32" height="32" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
+      <span>Wissensgebiete werden geladen ...</span>
+    </div>
+    <div v-else class="knowledge-areas-table">
       <div class="table-header">
         <span>Wissensgebiet</span>
         <span>Einarbeitung</span>
@@ -46,7 +50,15 @@
           <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
         </form>
       </div>
-      <div v-if="addError" class="add-error">{{ addError }}</div>
+    </div>
+    <div v-if="addError" class="modal-overlay">
+      <div class="modal error-modal">
+        <h3>Fehler</h3>
+        <p>{{ addError }}</p>
+        <div class="modal-actions">
+          <button class="save-btn" @click="addError = null">OK</button>
+        </div>
+      </div>
     </div>
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal">
@@ -341,6 +353,18 @@ h2 {
   gap: 1rem;
   margin-top: 1.2rem;
 }
+.error-modal {
+  border: 2px solid #ef4444;
+  box-shadow: 0 4px 24px rgba(239,68,68,0.13);
+}
+.error-modal h3 {
+  color: #ef4444;
+}
+.error-modal p {
+  color: #b91c1c;
+  font-weight: 600;
+  margin: 1em 0 0.5em 0;
+}
 .add-error {
   color: #ef4444;
   background: #fef2f2;
@@ -352,6 +376,27 @@ h2 {
   font-weight: 600;
   max-width: 500px;
   box-shadow: 0 1px 4px rgba(239,68,68,0.07);
+}
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  gap: 1.2rem;
+  color: #2563eb;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.spinner {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+.path {
+  stroke: #2563eb;
+  stroke-linecap: round;
 }
 @media (max-width: 600px) {
   .knowledge-areas-table {

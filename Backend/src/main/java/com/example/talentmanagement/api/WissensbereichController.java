@@ -1,6 +1,7 @@
 package com.example.talentmanagement.api;
 
 import com.example.talentmanagement.entity.Wissensbereich;
+import com.example.talentmanagement.entity.Wissensgebiet;
 import com.example.talentmanagement.repository.WissensbereichRepository;
 import com.example.talentmanagement.repository.WissensgebietRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,11 +26,24 @@ public class WissensbereichController {
 
     @Operation(summary = "Fügt einen neuen Wissensbereich hinzu", description = "Legt einen neuen Wissensbereich mit dem angegebenen Namen an.")
     @PostMapping
-    public ResponseEntity<Wissensbereich> addWissensbereich(@Valid @RequestBody Wissensbereich wissensbereich) {
+    public ResponseEntity<?> addWissensbereich(@Valid @RequestBody Wissensbereich wissensbereich) {
         // ID aus dem Body entfernen, falls vorhanden
         wissensbereich.setId(null);
         if (wissensbereich.getWissensgebiet() != null && wissensbereich.getWissensgebiet().getId() != null) {
-            wissensgebietRepository.findById(wissensbereich.getWissensgebiet().getId()).ifPresent(wissensbereich::setWissensgebiet);
+            var optGebiet = wissensgebietRepository.findById(wissensbereich.getWissensgebiet().getId());
+            if (optGebiet.isPresent()) {
+                Wissensgebiet gebiet = optGebiet.get();
+                // Validierung: Einarbeitung darf nur true sein, wenn das Gebiet auch Einarbeitung erlaubt
+                if (Boolean.TRUE.equals(wissensbereich.getEinarbeitung()) && !Boolean.TRUE.equals(gebiet.getEinarbeitung())) {
+                    return ResponseEntity.badRequest().body("Das zugewiesene Wissensgebiet ist nicht für Einarbeitung vorgesehen.");
+                }
+                // Prüfe, ob Kombination aus Name und Wissensgebiet bereits existiert
+                boolean exists = wissensbereichRepository.existsByNameAndWissensgebiet(wissensbereich.getName(), gebiet);
+                if (exists) {
+                    return ResponseEntity.badRequest().body("Ein Wissensbereich mit diesem Namen existiert bereits in diesem Wissensgebiet.");
+                }
+                wissensbereich.setWissensgebiet(gebiet);
+            }
         }
         Wissensbereich saved = wissensbereichRepository.save(wissensbereich);
         return ResponseEntity.ok(saved);
@@ -42,14 +56,27 @@ public class WissensbereichController {
         return ResponseEntity.ok(list);
     }
 
-    @Operation(summary = "Aktualisiert einen Wissensbereich", description = "Aktualisiert den Namen eines bestehenden Wissensbereichs anhand der ID.")
+    @Operation(summary = "Aktualisiert einen Wissensbereich", description = "Aktualisiert Name, Einarbeitung und weitere Felder eines bestehenden Wissensbereichs anhand der ID.")
     @PutMapping("/{id}")
-    public ResponseEntity<Wissensbereich> updateWissensbereich(@PathVariable Long id, @Valid @RequestBody Wissensbereich wissensbereich) {
+    public ResponseEntity<?> updateWissensbereich(@PathVariable Long id, @Valid @RequestBody Wissensbereich wissensbereich) {
         return wissensbereichRepository.findById(id)
             .map(existing -> {
+                Wissensgebiet gebiet = null;
+                if (wissensbereich.getWissensgebiet() != null && wissensbereich.getWissensgebiet().getId() != null) {
+                    gebiet = wissensgebietRepository.findById(wissensbereich.getWissensgebiet().getId()).orElse(null);
+                }
+                if (Boolean.TRUE.equals(wissensbereich.getEinarbeitung()) && (gebiet == null || !Boolean.TRUE.equals(gebiet.getEinarbeitung()))) {
+                    return ResponseEntity.badRequest().body("Das zugewiesene Wissensgebiet ist nicht für Einarbeitung vorgesehen.");
+                }
+                // Unique-Check: Kombination Name + Wissensgebiet darf nicht doppelt sein (außer beim eigenen Datensatz)
+                boolean exists = wissensbereichRepository.existsByNameAndWissensgebietAndIdNot(wissensbereich.getName(), gebiet, id);
+                if (exists) {
+                    return ResponseEntity.badRequest().body("Ein Wissensbereich mit diesem Namen existiert bereits in diesem Wissensgebiet.");
+                }
                 // ID aus dem Body ignorieren
                 existing.setName(wissensbereich.getName());
-                existing.setWissensgebiet(wissensbereich.getWissensgebiet());
+                existing.setEinarbeitung(wissensbereich.getEinarbeitung());
+                existing.setWissensgebiet(gebiet);
                 existing.setWissensbausteine(wissensbereich.getWissensbausteine());
                 Wissensbereich updated = wissensbereichRepository.save(existing);
                 // Wissensgebiet mit Name für Response setzen
