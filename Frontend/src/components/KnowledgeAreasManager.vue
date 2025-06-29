@@ -20,7 +20,7 @@
           <input type="checkbox" disabled :checked="area.einarbeitung" />
         </span>
         <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
-          <label style="display:flex;align-items:center;gap:0.5em;">
+          <label style="display:flex;align-items:center;gap:0.7em;font-size:1.13rem;color:#334155;font-weight:700;margin-left:1.2em;">
             <input type="checkbox" v-model="editedArea.einarbeitung" />
             Einarbeitung erforderlich
           </label>
@@ -42,7 +42,7 @@
         </button>
         <form v-else @submit.prevent="saveNewArea" class="add-form">
           <input v-model="newArea.name" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
-          <label style="display:flex;align-items:center;gap:0.5em;">
+          <label style="display:flex;align-items:center;gap:0.7em;font-size:1.13rem;color:#334155;font-weight:700;margin-left:1.2em;">
             <input type="checkbox" v-model="newArea.einarbeitung" />
             Einarbeitung erforderlich
           </label>
@@ -219,7 +219,11 @@ function cancelAdd() {
 
 <style scoped>
 .knowledge-areas-wrapper {
-  width: 100%;
+  width: 100vw;
+  max-width: 100vw;
+  padding-left: 2vw;
+  padding-right: 2vw;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -234,8 +238,8 @@ h2 {
 }
 .knowledge-areas-table {
   width: 100%;
-  max-width: 800px;
-  min-width: 400px;
+  max-width: 100%;
+  min-width: 0;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(37,99,235,0.09);
@@ -245,11 +249,17 @@ h2 {
   gap: 0.7rem;
 }
 .table-header, .table-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
   align-items: center;
   font-size: 1.12rem;
   padding: 0.4rem 0;
+}
+.table-header > span:nth-child(2),
+.table-row > span:nth-child(2),
+.table-row > form:nth-child(2) {
+  justify-content: center;
+  display: flex;
 }
 .table-header {
   font-weight: 700;
@@ -267,6 +277,18 @@ h2 {
 }
 .table-row:hover {
   box-shadow: 0 2px 10px rgba(37,99,235,0.13);
+}
+.table-row > span, .table-row > form {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.table-row > span:nth-child(2) {
+  justify-content: center;
+}
+.table-row > span:nth-child(3),
+.table-row > form:nth-child(3) {
+  justify-content: flex-end;
 }
 .table-row > span, .table-row > form {
   flex: 1;
@@ -290,31 +312,35 @@ h2 {
   gap: 0.7rem;
 }
 .add-form {
-  display: flex;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 0.7rem;
   align-items: center;
   margin-top: 0.2rem;
 }
 .add-input {
-  flex: 2;
+  flex: unset;
+  width: 100%;
   padding: 0.45rem 0.8rem;
   border: 1.5px solid #cbd5e1;
   border-radius: 7px;
   font-size: 1.05rem;
 }
 .add-form label {
-  flex: 1;
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  font-size: 1.13rem;
   color: #334155;
-  gap: 0.4em;
-  margin: 0;
-  font-weight: 500;
+  font-weight: 700;
+  margin-left: 1.2em;
+  white-space: nowrap;
 }
 .save-btn {
   background: #22c55e;
   color: #fff;
   border: none;
-  border-radius: 5px;
+  border-radius: 7px;
   padding: 0.45rem 1.1rem;
   font-weight: 700;
   cursor: pointer;
@@ -329,9 +355,9 @@ h2 {
   background: #e0e7ef;
   color: #334155;
   border: none;
-  border-radius: 5px;
+  border-radius: 7px;
   padding: 0.45rem 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
   font-size: 1rem;
