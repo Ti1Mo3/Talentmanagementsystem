@@ -16,19 +16,37 @@
         <span>{{ section.wissensgebiet?.name }}</span>
         <span v-if="editingId !== section.id">{{ section.name }}</span>
         <form v-else @submit.prevent="saveEditSection(section)" class="add-form" style="flex:1;">
-          <input v-model="editedSection.name" type="text" class="add-input" autofocus />
+          <label style="display:flex;align-items:center;gap:0.7em;">
+            <span style="min-width:120px;">Wissensgebiet:</span>
+            <select v-model="editedSection.wissensgebietId" class="add-input">
+              <option disabled value="">Wissensgebiet auswählen</option>
+              <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
+            </select>
+          </label>
+          <input v-model="editedSection.name" type="text" class="add-input" placeholder="Name des Wissensbereichs" style="margin-left:0;" />
+          <label style="display:flex;align-items:center;gap:0.7em;">
+            <input type="checkbox" v-model="editedSection.einarbeitung" />
+            Einarbeitung erforderlich
+          </label>
+          <button type="submit" class="save-btn" :disabled="!editedSection.name?.trim()">Speichern</button>
+          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
         </form>
         <span v-if="editingId !== section.id">
           <input type="checkbox" disabled :checked="section.einarbeitung" />
         </span>
         <form v-else @submit.prevent="saveEditSection(section)" class="add-form" style="flex:1;">
-          <label style="display:flex;align-items:center;gap:0.5em;">
+          <label style="display:flex;align-items:center;gap:0.7em;">
+            <span style="min-width:120px;">Wissensgebiet:</span>
+            <select v-model="editedSection.wissensgebietId" class="add-input">
+              <option disabled value="">Wissensgebiet auswählen</option>
+              <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
+            </select>
+          </label>
+          <input v-model="editedSection.name" type="text" class="add-input" placeholder="Name des Wissensbereichs" style="margin-left:0;" />
+          <label style="display:flex;align-items:center;gap:0.7em;">
             <input type="checkbox" v-model="editedSection.einarbeitung" />
             Einarbeitung erforderlich
           </label>
-          <select v-model="editedSection.wissensgebietId" class="add-input">
-            <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
-          </select>
           <button type="submit" class="save-btn" :disabled="!editedSection.name?.trim()">Speichern</button>
           <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
         </form>
@@ -46,14 +64,18 @@
           <svg width="28" height="28" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M10 6v8M6 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <form v-else @submit.prevent="saveNewSection" class="add-form">
-          <input v-model="newSection.name" type="text" placeholder="Name des Wissensbereichs" autofocus class="add-input" />
-          <label style="display:flex;align-items:center;gap:0.5em;">
+          <label style="display:flex;align-items:center;gap:0.7em;">
+            <span style="min-width:120px;">Wissensgebiet:</span>
+            <select v-model="newSection.wissensgebietId" class="add-input">
+              <option disabled value="">Wissensgebiet auswählen</option>
+              <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
+            </select>
+          </label>
+          <input v-model="newSection.name" type="text" placeholder="Name des Wissensbereichs" autofocus class="add-input" style="margin-left:0;" />
+          <label style="display:flex;align-items:center;gap:0.7em;">
             <input type="checkbox" v-model="newSection.einarbeitung" />
             Einarbeitung erforderlich
           </label>
-          <select v-model="newSection.wissensgebietId" class="add-input">
-            <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
-          </select>
           <button type="submit" class="save-btn" :disabled="!newSection.name?.trim()">Speichern</button>
           <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
         </form>
@@ -97,18 +119,22 @@ import { useKnowledgeStore } from '../store/knowledge';
 import type { KnowledgeArea } from '../models/KnowledgeArea';
 import type { KnowledgeSection } from '../models/KnowledgeSection';
 
+// Pinia Store
 const store = useKnowledgeStore();
+
+// State
 const sections = ref<KnowledgeSection[]>([]);
 const areas = ref<KnowledgeArea[]>([]);
-const newSection = ref<{ name: string; einarbeitung: boolean; wissensgebietId: number | null }>({ name: '', einarbeitung: false, wissensgebietId: null });
+const newSection = ref({ name: '', einarbeitung: false, wissensgebietId: null as number | null });
 const adding = ref(false);
 const showDeleteModal = ref(false);
 const sectionToDelete = ref<KnowledgeSection | null>(null);
 const editingId = ref<number | null>(null);
-const editedSection = ref<{ name: string; einarbeitung: boolean; wissensgebietId: number | null }>({ name: '', einarbeitung: false, wissensgebietId: null });
+const editedSection = ref({ name: '', einarbeitung: false, wissensgebietId: null as number | null });
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
 
+// Daten laden
 async function fetchSections() {
   store.setLoading(true);
   store.setError(null);
@@ -129,6 +155,7 @@ async function fetchSections() {
 
 onMounted(fetchSections);
 
+// Editieren
 function editSection(section: KnowledgeSection) {
   editingId.value = section.id;
   editedSection.value = {
@@ -149,11 +176,13 @@ async function saveEditSection(section: KnowledgeSection) {
   store.setError(null);
   editError.value = null;
   try {
-    const response = await apiService.put(`/wissensbereich/${section.id}`, {
-      name: editedSection.value.name,
-      einarbeitung: editedSection.value.einarbeitung,
-      wissensgebietId: editedSection.value.wissensgebietId,
-    });
+    const response = await apiService.put(`/wissensbereich/${section.id}`,
+      {
+        name: editedSection.value.name,
+        einarbeitung: editedSection.value.einarbeitung,
+        wissensgebietId: editedSection.value.wissensgebietId,
+      }
+    );
     const idx = sections.value.findIndex((s) => s.id === section.id);
     if (idx !== -1) {
       sections.value[idx] = response.data;
@@ -162,20 +191,18 @@ async function saveEditSection(section: KnowledgeSection) {
     editingId.value = null;
     editedSection.value = { name: '', einarbeitung: false, wissensgebietId: null };
   } catch (error: any) {
-    if (error?.response?.data) {
-      editError.value = error.response.data;
-    } else {
-      editError.value = 'Fehler beim Bearbeiten des Wissensbereichs';
-    }
+    editError.value = error?.response?.data || 'Fehler beim Bearbeiten des Wissensbereichs';
   } finally {
     store.setLoading(false);
   }
 }
 
+// Löschen
 function deleteSection(section: KnowledgeSection) {
   sectionToDelete.value = section;
   showDeleteModal.value = true;
 }
+
 async function confirmDeleteSection() {
   if (!sectionToDelete.value) return;
   store.setLoading(true);
@@ -192,10 +219,13 @@ async function confirmDeleteSection() {
     store.setLoading(false);
   }
 }
+
 function cancelDeleteSection() {
   showDeleteModal.value = false;
   sectionToDelete.value = null;
 }
+
+// Hinzufügen
 function addSection() {
   adding.value = true;
   newSection.value = { name: '', einarbeitung: false, wissensgebietId: null };
@@ -210,18 +240,14 @@ async function saveNewSection() {
     const response = await apiService.post('/wissensbereich', {
       name: newSection.value.name,
       einarbeitung: newSection.value.einarbeitung,
-      wissensgebietId: newSection.value.wissensgebietId,
+      wissensgebiet: { id: newSection.value.wissensgebietId },
     });
     sections.value.unshift(response.data);
     store.setItems(sections.value);
     adding.value = false;
     newSection.value = { name: '', einarbeitung: false, wissensgebietId: null };
   } catch (error: any) {
-    if (error?.response?.data) {
-      addError.value = error.response.data;
-    } else {
-      addError.value = 'Fehler beim Hinzufügen des Wissensbereichs';
-    }
+    addError.value = error?.response?.data || 'Fehler beim Hinzufügen des Wissensbereichs';
   } finally {
     store.setLoading(false);
   }
@@ -329,10 +355,12 @@ h2 {
 }
 .add-form {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr;
+  grid-template-rows: auto;
   gap: 0.7rem;
   align-items: center;
   margin-top: 0.2rem;
+  overflow: visible;
 }
 .add-input {
   flex: unset;
@@ -341,6 +369,8 @@ h2 {
   border: 1.5px solid #cbd5e1;
   border-radius: 7px;
   font-size: 1.05rem;
+  position: relative;
+  z-index: 1;
 }
 .add-form label {
   display: flex;
@@ -351,6 +381,14 @@ h2 {
   font-weight: 700;
   margin-left: 1.2em;
   white-space: nowrap;
+}
+.add-form select.add-input {
+  appearance: none;
+  background: #fff url('data:image/svg+xml;utf8,<svg fill="%23334155" height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 8.293a1 1 0 011.414 0L10 9.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>') no-repeat right 0.8em center/1.2em 1.2em;
+  padding-right: 2.2em;
+  cursor: pointer;
+  /* Dropdown nach unten bevorzugen */
+  /* Browser öffnen Dropdowns nach unten, wenn genug Platz ist. Durch overflow: visible und z-index wird das Verhalten unterstützt. */
 }
 .save-btn {
   background: #22c55e;
@@ -377,6 +415,7 @@ h2 {
   cursor: pointer;
   transition: background 0.2s;
   font-size: 1rem;
+  margin-left: 0;
 }
 .cancel-btn:hover {
   background: #cbd5e1;

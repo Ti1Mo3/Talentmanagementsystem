@@ -20,7 +20,7 @@
           <input type="checkbox" disabled :checked="area.einarbeitung" />
         </span>
         <form v-else @submit.prevent="saveEditArea(area)" class="add-form" style="flex:1;">
-          <label style="display:flex;align-items:center;gap:0.7em;font-size:1.13rem;color:#334155;font-weight:700;margin-left:1.2em;">
+          <label class="checkbox-label">
             <input type="checkbox" v-model="editedArea.einarbeitung" />
             Einarbeitung erforderlich
           </label>
@@ -42,7 +42,7 @@
         </button>
         <form v-else @submit.prevent="saveNewArea" class="add-form">
           <input v-model="newArea.name" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
-          <label style="display:flex;align-items:center;gap:0.7em;font-size:1.13rem;color:#334155;font-weight:700;margin-left:1.2em;">
+          <label class="checkbox-label">
             <input type="checkbox" v-model="newArea.einarbeitung" />
             Einarbeitung erforderlich
           </label>
@@ -88,23 +88,26 @@ import apiService from '../services/apiService';
 import { useKnowledgeStore } from '../store/knowledge';
 import type { KnowledgeArea } from '../models/KnowledgeArea';
 
+// Pinia Store
 const store = useKnowledgeStore();
+
+// State
 const areas = ref<KnowledgeArea[]>([]);
-const newArea = ref<Partial<KnowledgeArea>>({ name: '', einarbeitung: false });
+const newArea = ref<{ name: string; einarbeitung: boolean }>({ name: '', einarbeitung: false });
 const adding = ref(false);
 const showDeleteModal = ref(false);
 const areaToDelete = ref<KnowledgeArea | null>(null);
 const editingId = ref<number | null>(null);
-const editedArea = ref<Partial<KnowledgeArea>>({ name: '', einarbeitung: false });
+const editedArea = ref<{ name: string; einarbeitung: boolean }>({ name: '', einarbeitung: false });
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
 
+// Daten laden
 async function fetchAreas() {
   store.setLoading(true);
   store.setError(null);
   try {
     const response = await apiService.get('/wissensgebiet');
-    console.log('Wissensgebiete geladen:', response.data);
     areas.value = response.data;
     store.setItems(response.data);
   } catch (error: any) {
@@ -116,6 +119,7 @@ async function fetchAreas() {
 
 onMounted(fetchAreas);
 
+// Editieren
 function editArea(area: KnowledgeArea) {
   editingId.value = area.id;
   editedArea.value = { name: area.name, einarbeitung: area.einarbeitung };
@@ -144,21 +148,18 @@ async function saveEditArea(area: KnowledgeArea) {
     editingId.value = null;
     editedArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {
-    // Backend-Fehlertext anzeigen, falls vorhanden
-    if (error?.response?.data) {
-      editError.value = error.response.data;
-    } else {
-      editError.value = 'Fehler beim Bearbeiten des Wissensgebiets';
-    }
+    editError.value = error?.response?.data || 'Fehler beim Bearbeiten des Wissensgebiets';
   } finally {
     store.setLoading(false);
   }
 }
 
+// Löschen
 function deleteArea(area: KnowledgeArea) {
   areaToDelete.value = area;
   showDeleteModal.value = true;
 }
+
 async function confirmDeleteArea() {
   if (!areaToDelete.value) return;
   store.setLoading(true);
@@ -175,10 +176,13 @@ async function confirmDeleteArea() {
     store.setLoading(false);
   }
 }
+
 function cancelDeleteArea() {
   showDeleteModal.value = false;
   areaToDelete.value = null;
 }
+
+// Hinzufügen
 function addArea() {
   adding.value = true;
   newArea.value = { name: '', einarbeitung: false };
@@ -199,12 +203,7 @@ async function saveNewArea() {
     adding.value = false;
     newArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {
-    // Backend-Fehlertext anzeigen, falls vorhanden
-    if (error?.response?.data) {
-      addError.value = error.response.data;
-    } else {
-      addError.value = 'Fehler beim Hinzufügen des Wissensgebiets';
-    }
+    addError.value = error?.response?.data || 'Fehler beim Hinzufügen des Wissensgebiets';
   } finally {
     store.setLoading(false);
   }
@@ -326,7 +325,7 @@ h2 {
   border-radius: 7px;
   font-size: 1.05rem;
 }
-.add-form label {
+.add-form label.checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.7em;
