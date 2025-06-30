@@ -33,7 +33,7 @@ public class WissensgebietController {
     @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.")
     @GetMapping
     public ResponseEntity<List<Wissensgebiet>> getAllWissensgebiete() {
-        List<Wissensgebiet> list = wissensgebietRepository.findAll();
+        List<Wissensgebiet> list = wissensgebietRepository.findAllByOrderByIdDesc();
         return ResponseEntity.ok(list);
     }
 

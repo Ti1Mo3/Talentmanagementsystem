@@ -7,7 +7,6 @@
         <option :value="null">Wissensgebiet auswählen</option>
         <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
       </select>
-      <button v-if="selectedAreaId" class="cancel-btn" style="margin-left:0.5rem;" @click="resetAreaFilter">Zurücksetzen</button>
     </div>
     <div v-if="store.loading" class="loading-indicator">
       <svg class="spinner" width="32" height="32" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>

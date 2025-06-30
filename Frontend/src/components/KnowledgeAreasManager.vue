@@ -199,12 +199,12 @@ async function saveNewArea() {
   store.setError(null);
   addError.value = null;
   try {
-    const response = await apiService.post('/wissensgebiet', {
+    await apiService.post('/wissensgebiet', {
       name: newArea.value.name,
       einarbeitung: newArea.value.einarbeitung
     });
-    areas.value.unshift(response.data);
-    store.setItems(areas.value);
+    // Nach dem Hinzufügen neu laden
+    await fetchAreas();
     adding.value = false;
     newArea.value = { name: '', einarbeitung: false };
   } catch (error: any) {

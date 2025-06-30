@@ -52,7 +52,7 @@ public class WissensbereichController {
     @Operation(summary = "Liefert alle Wissensbereiche", description = "Gibt eine Liste aller vorhandenen Wissensbereiche zurück.")
     @GetMapping
     public ResponseEntity<List<Wissensbereich>> getAllWissensbereiche() {
-        List<Wissensbereich> list = wissensbereichRepository.findAll();
+        List<Wissensbereich> list = wissensbereichRepository.findAllByOrderByIdDesc();
         return ResponseEntity.ok(list);
     }
 
@@ -105,7 +105,7 @@ public class WissensbereichController {
         if (!wissensgebietRepository.existsById(wissensgebietId)) {
             return ResponseEntity.notFound().build();
         }
-        List<Wissensbereich> bereiche = wissensbereichRepository.findByWissensgebiet_Id(wissensgebietId);
+        List<Wissensbereich> bereiche = wissensbereichRepository.findByWissensgebiet_IdOrderByIdDesc(wissensgebietId);
         return ResponseEntity.ok(bereiche);
     }
 }
