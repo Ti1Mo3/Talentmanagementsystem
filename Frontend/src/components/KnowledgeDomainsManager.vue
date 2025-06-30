@@ -1,6 +1,14 @@
 <template>
   <div class="knowledge-areas-wrapper">
     <h2>Wissensbereiche verwalten</h2>
+    <!-- Filter Dropdown -->
+    <div style="width:100%;max-width:500px;margin-bottom:1.2rem;display:flex;align-items:center;gap:1.2rem;">
+      <select id="areaFilter" v-model="selectedAreaId" @change="onAreaFilterChange" class="add-input" style="min-width:180px;">
+        <option :value="null">Wissensgebiet auswählen</option>
+        <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
+      </select>
+      <button v-if="selectedAreaId" class="cancel-btn" style="margin-left:0.5rem;" @click="resetAreaFilter">Zurücksetzen</button>
+    </div>
     <div v-if="store.loading" class="loading-indicator">
       <svg class="spinner" width="32" height="32" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
       <span>Wissensbereiche werden geladen ...</span>
@@ -121,6 +129,7 @@ const editingId = ref<number | null>(null);
 const editedSection = ref({ name: '', einarbeitung: false, wissensgebietId: null as number | null });
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
+const selectedAreaId = ref<number|null>(null);
 
 // Daten laden
 async function fetchSections() {
@@ -136,6 +145,20 @@ async function fetchSections() {
     store.setItems(sectionRes.data);
   } catch (error: any) {
     store.setError('Fehler beim Laden der Wissensbereiche');
+  } finally {
+    store.setLoading(false);
+  }
+}
+
+async function fetchSectionsByArea(areaId: number) {
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    const sectionRes = await apiService.get(`/wissensbereich/byWissensgebiet/${areaId}`);
+    sections.value = sectionRes.data;
+    store.setItems(sectionRes.data);
+  } catch (error: any) {
+    store.setError('Fehler beim Filtern der Wissensbereiche');
   } finally {
     store.setLoading(false);
   }
@@ -176,6 +199,9 @@ async function saveEditSection(section: KnowledgeSection) {
     }
     editingId.value = null;
     editedSection.value = { name: '', einarbeitung: false, wissensgebietId: null };
+    // Filter zurücksetzen nach Edit
+    selectedAreaId.value = null;
+    await fetchSections();
   } catch (error: any) {
     editError.value = error?.response?.data || 'Fehler beim Bearbeiten des Wissensbereichs';
   } finally {
@@ -232,6 +258,9 @@ async function saveNewSection() {
     store.setItems(sections.value);
     adding.value = false;
     newSection.value = { name: '', einarbeitung: false, wissensgebietId: null };
+    // Filter zurücksetzen nach Hinzufügen
+    selectedAreaId.value = null;
+    await fetchSections();
   } catch (error: any) {
     addError.value = error?.response?.data || 'Fehler beim Hinzufügen des Wissensbereichs';
   } finally {
@@ -243,6 +272,19 @@ function cancelAdd() {
   adding.value = false;
   newSection.value = { name: '', einarbeitung: false, wissensgebietId: null };
   addError.value = null;
+}
+
+function onAreaFilterChange() {
+  if (selectedAreaId.value) {
+    fetchSectionsByArea(selectedAreaId.value);
+  } else {
+    fetchSections();
+  }
+}
+
+function resetAreaFilter() {
+  selectedAreaId.value = null;
+  fetchSections();
 }
 </script>
 

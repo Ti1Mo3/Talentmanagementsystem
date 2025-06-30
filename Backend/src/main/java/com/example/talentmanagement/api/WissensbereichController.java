@@ -98,4 +98,14 @@ public class WissensbereichController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Operation(summary = "Liste der Wissensbereiche zu einem Wissensgebiet", description = "Gibt alle Wissensbereiche für ein bestimmtes Wissensgebiet zurück.")
+    @GetMapping("/byWissensgebiet/{wissensgebietId}")
+    public ResponseEntity<List<Wissensbereich>> getWissensbereicheByWissensgebiet(@PathVariable Long wissensgebietId) {
+        if (!wissensgebietRepository.existsById(wissensgebietId)) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Wissensbereich> bereiche = wissensbereichRepository.findByWissensgebiet_Id(wissensgebietId);
+        return ResponseEntity.ok(bereiche);
+    }
 }
