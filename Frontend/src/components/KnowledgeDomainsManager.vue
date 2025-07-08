@@ -67,7 +67,7 @@
           <input v-model="newSection.name" type="text" placeholder="Name des Wissensbereichs" autofocus class="add-input" />
           <label class="checkbox-label">
             <input type="checkbox" v-model="newSection.einarbeitung" />
-            Einarbeitung erforderlich
+            Einarbeitung
           </label>
           <div style="display: flex; gap: 0.7rem;">
             <button type="submit" class="save-btn" :disabled="!newSection.name?.trim()">Speichern</button>

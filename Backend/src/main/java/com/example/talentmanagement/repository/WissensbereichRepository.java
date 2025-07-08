@@ -14,4 +14,7 @@ public interface WissensbereichRepository extends JpaRepository<Wissensbereich, 
     List<Wissensbereich> findByWissensgebiet_Id(Long wissensgebietId);
     List<Wissensbereich> findByWissensgebiet_IdOrderByIdDesc(Long wissensgebietId);
     List<Wissensbereich> findAllByOrderByIdDesc();
+    List<Wissensbereich> findAllByOrderByNameAsc();
+    List<Wissensbereich> findByWissensgebiet_IdOrderByNameAsc(Long wissensgebietId);
+    List<Wissensbereich> findAllByOrderByWissensgebiet_NameAscNameAsc();
 }

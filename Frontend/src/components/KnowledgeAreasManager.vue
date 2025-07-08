@@ -47,7 +47,7 @@
           <input v-model="newArea.name" type="text" placeholder="Name des Wissensgebiets" autofocus class="add-input" />
           <label class="checkbox-label" style="margin-left: 1.2em;">
             <input type="checkbox" v-model="newArea.einarbeitung" />
-            Einarbeitung erforderlich
+            Einarbeitung
           </label>
           <div style="display: flex; gap: 0.7rem; margin-left: 1.5rem;">
             <button type="submit" class="save-btn" :disabled="!newArea.name?.trim()">Speichern</button>
@@ -84,6 +84,15 @@
         </div>
       </div>
     </div>
+    <div v-if="deleteError" class="modal-overlay">
+      <div class="modal error-modal">
+        <h3>Fehler</h3>
+        <p>{{ deleteError }}</p>
+        <div class="modal-actions">
+          <button class="save-btn" @click="closeDeleteError">OK</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -106,6 +115,7 @@ const editingId = ref<number | null>(null);
 const editedArea = ref<{ name: string; einarbeitung: boolean }>({ name: '', einarbeitung: false });
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
+const deleteError = ref<string | null>(null);
 
 // Daten laden
 async function fetchAreas() {
@@ -169,6 +179,7 @@ async function confirmDeleteArea() {
   if (!areaToDelete.value) return;
   store.setLoading(true);
   store.setError(null);
+  deleteError.value = null;
   try {
     await apiService.delete(`/wissensgebiet/${areaToDelete.value.id}`);
     areas.value = areas.value.filter(a => a.id !== areaToDelete.value!.id);
@@ -176,10 +187,16 @@ async function confirmDeleteArea() {
     showDeleteModal.value = false;
     areaToDelete.value = null;
   } catch (error: any) {
-    store.setError('Fehler beim Löschen des Wissensgebiets');
+    deleteError.value = error?.response?.data || 'Fehler beim Löschen des Wissensgebiets';
+    showDeleteModal.value = false;
+    areaToDelete.value = null;
   } finally {
     store.setLoading(false);
   }
+}
+
+function closeDeleteError() {
+  deleteError.value = null;
 }
 
 function cancelDeleteArea() {

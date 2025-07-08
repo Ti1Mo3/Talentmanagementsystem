@@ -9,4 +9,6 @@ public interface WissensgebietRepository extends JpaRepository<Wissensgebiet, Lo
     boolean existsByNameAndIdNot(String name, Long id);
 
     List<Wissensgebiet> findAllByOrderByIdDesc();
+
+    List<Wissensgebiet> findAllByOrderByNameAsc();
 }

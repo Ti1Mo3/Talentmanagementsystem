@@ -33,7 +33,7 @@ public class WissensgebietController {
     @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.")
     @GetMapping
     public ResponseEntity<List<Wissensgebiet>> getAllWissensgebiete() {
-        List<Wissensgebiet> list = wissensgebietRepository.findAllByOrderByIdDesc();
+        List<Wissensgebiet> list = wissensgebietRepository.findAllByOrderByNameAsc();
         return ResponseEntity.ok(list);
     }
 
@@ -56,12 +56,16 @@ public class WissensgebietController {
 
     @Operation(summary = "Löscht ein Wissensgebiet", description = "Löscht ein Wissensgebiet anhand der ID.")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteWissensgebiet(@PathVariable Long id) {
-        if (wissensgebietRepository.existsById(id)) {
+    public ResponseEntity<?> deleteWissensgebiet(@PathVariable Long id) {
+        if (!wissensgebietRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
             wissensgebietRepository.deleteById(id);
             return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Wissensgebiet ist noch mit Wissensbereichen verknüpft
+            return ResponseEntity.badRequest().body("Um das Wissensgebiet zu löschen, müssen zuerst alle zugehörigen Wissensbereiche gelöscht werden.");
         }
     }
 }
