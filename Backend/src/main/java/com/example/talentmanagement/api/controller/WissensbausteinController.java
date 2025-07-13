@@ -83,6 +83,9 @@ public class WissensbausteinController {
         dto.einarbeitung = entity.getEinarbeitung();
         dto.reihenfolge = entity.getReihenfolge().getValue();
         dto.wissensbereichId = entity.getWissensbereich() != null ? entity.getWissensbereich().getId() : null;
+        dto.wissensgebietId = (entity.getWissensbereich() != null && entity.getWissensbereich().getWissensgebiet() != null)
+            ? entity.getWissensbereich().getWissensgebiet().getId()
+            : null;
         return dto;
     }
 }

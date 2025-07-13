@@ -19,6 +19,9 @@ public class WissensbausteinDto {
     @Schema(description = "ID des zugehörigen Wissensbereichs", example = "5")
     public Long wissensbereichId;
 
-    @Schema(description = "ID des Wissensbausteins", example = "1")
+    @Schema(description = "ID des Wissensbausteins", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     public Long id;
+
+    @Schema(description = "ID des zugehörigen Wissensgebiets", example = "2")
+    public Long wissensgebietId;
 }

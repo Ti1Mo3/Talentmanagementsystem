@@ -159,7 +159,12 @@ async function fetchSectionsByArea(areaId: number) {
     sections.value = sectionRes.data;
     store.setItems(sectionRes.data);
   } catch (error: any) {
-    store.setError('Fehler beim Filtern der Wissensbereiche');
+    if (error?.response?.status === 404) {
+      sections.value = [];
+      store.setItems([]);
+    } else {
+      store.setError('Fehler beim Filtern der Wissensbereiche');
+    }
   } finally {
     store.setLoading(false);
   }
