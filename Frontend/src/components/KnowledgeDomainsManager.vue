@@ -21,7 +21,9 @@
       </div>
       <div class="table-row" v-for="section in sections" :key="section.id">
         <!-- Wissensgebiet -->
-        <span v-if="editingId !== section.id">{{ section.wissensgebiet?.name }}</span>
+        <span v-if="editingId !== section.id">
+          {{ areas.find(area => area.id === section.wissensgebietId)?.name }}
+        </span>
         <span v-else>
           <select v-model="editedSection.wissensgebietId" class="add-input" style="margin-right:1.2em;">
             <option disabled value="">Wissensgebiet auswählen</option>
@@ -171,7 +173,7 @@ function editSection(section: KnowledgeSection) {
   editedSection.value = {
     name: section.name,
     einarbeitung: section.einarbeitung,
-    wissensgebietId: section.wissensgebiet?.id ?? null,
+    wissensgebietId: section.wissensgebietId ?? null,
   };
 }
 
@@ -189,7 +191,7 @@ async function saveEditSection(section: KnowledgeSection) {
     const response = await apiService.put(`/wissensbereich/${section.id}`, {
       name: editedSection.value.name,
       einarbeitung: editedSection.value.einarbeitung,
-      wissensgebiet: { id: editedSection.value.wissensgebietId },
+      wissensgebietId: editedSection.value.wissensgebietId,
     });
     const idx = sections.value.findIndex((s) => s.id === section.id);
     if (idx !== -1) {
@@ -251,7 +253,7 @@ async function saveNewSection() {
     const response = await apiService.post('/wissensbereich', {
       name: newSection.value.name,
       einarbeitung: newSection.value.einarbeitung,
-      wissensgebiet: { id: newSection.value.wissensgebietId },
+      wissensgebietId: newSection.value.wissensgebietId,
     });
     sections.value.unshift(response.data);
     store.setItems(sections.value);
