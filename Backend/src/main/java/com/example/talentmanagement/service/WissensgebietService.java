@@ -1,0 +1,63 @@
+package com.example.talentmanagement.service;
+
+import com.example.talentmanagement.entity.Wissensgebiet;
+import com.example.talentmanagement.repository.WissensgebietRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import org.springframework.http.ResponseEntity;
+
+@Service
+public class WissensgebietService {
+    private final WissensgebietRepository wissensgebietRepository;
+
+    @Autowired
+    public WissensgebietService(WissensgebietRepository wissensgebietRepository) {
+        this.wissensgebietRepository = wissensgebietRepository;
+    }
+
+    private ResponseEntity<String> badRequest(String message) {
+        return ResponseEntity.badRequest().body(message);
+    }
+
+    public ResponseEntity<?> addWissensgebiet(Wissensgebiet wissensgebiet) {
+        if (wissensgebietRepository.findAll().stream().anyMatch(wg -> wg.getName().equalsIgnoreCase(wissensgebiet.getName()))) {
+            return badRequest("Ein Wissensgebiet mit diesem Namen existiert bereits.");
+        }
+        Wissensgebiet saved = wissensgebietRepository.save(wissensgebiet);
+        return ResponseEntity.ok(saved);
+    }
+
+    public List<Wissensgebiet> getAllWissensgebiete() {
+        return wissensgebietRepository.findAllByOrderByNameAsc();
+    }
+
+    public ResponseEntity<?> updateWissensgebiet(Long id, Wissensgebiet wissensgebiet) {
+        Optional<Wissensgebiet> existingOpt = wissensgebietRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Das Wissensgebiet mit der angegebenen ID wurde nicht gefunden.");
+        }
+        if (wissensgebietRepository.existsByNameAndIdNot(wissensgebiet.getName(), id)) {
+            return badRequest("Ein Wissensgebiet mit diesem Namen existiert bereits.");
+        }
+        Wissensgebiet existing = existingOpt.get();
+        existing.setName(wissensgebiet.getName());
+        existing.setEinarbeitung(wissensgebiet.getEinarbeitung());
+        Wissensgebiet updated = wissensgebietRepository.save(existing);
+        return ResponseEntity.ok(updated);
+    }
+
+    public ResponseEntity<?> deleteWissensgebiet(Long id) {
+        if (!wissensgebietRepository.existsById(id)) {
+            return ResponseEntity.status(404).body("Das Wissensgebiet mit der angegebenen ID wurde nicht gefunden.");
+        }
+        try {
+            wissensgebietRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            return badRequest("Um das Wissensgebiet zu löschen, müssen zuerst alle zugehörigen Wissensbereiche gelöscht werden.");
+        }
+    }
+}

@@ -1,7 +1,7 @@
 package com.example.talentmanagement.api;
 
 import com.example.talentmanagement.entity.Wissensgebiet;
-import com.example.talentmanagement.repository.WissensgebietRepository;
+import com.example.talentmanagement.service.WissensgebietService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,59 +13,35 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/wissensgebiet")
 public class WissensgebietController {
-    private final WissensgebietRepository wissensgebietRepository;
+    private final WissensgebietService wissensgebietService;
 
     @Autowired
-    public WissensgebietController(WissensgebietRepository wissensgebietRepository) {
-        this.wissensgebietRepository = wissensgebietRepository;
+    public WissensgebietController(WissensgebietService wissensgebietService) {
+        this.wissensgebietService = wissensgebietService;
     }
 
     @Operation(summary = "Fügt ein neues Wissensgebiet hinzu", description = "Legt ein neues Wissensgebiet mit dem angegebenen Namen und Einarbeitung an.")
     @PostMapping
     public ResponseEntity<?> addWissensgebiet(@Valid @RequestBody Wissensgebiet wissensgebiet) {
-        if (wissensgebietRepository.findAll().stream().anyMatch(wg -> wg.getName().equalsIgnoreCase(wissensgebiet.getName()))) {
-            return ResponseEntity.badRequest().body("Ein Wissensgebiet mit diesem Namen existiert bereits.");
-        }
-        Wissensgebiet saved = wissensgebietRepository.save(wissensgebiet);
-        return ResponseEntity.ok(saved);
+        return wissensgebietService.addWissensgebiet(wissensgebiet);
     }
 
     @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.")
     @GetMapping
     public ResponseEntity<List<Wissensgebiet>> getAllWissensgebiete() {
-        List<Wissensgebiet> list = wissensgebietRepository.findAllByOrderByNameAsc();
+        List<Wissensgebiet> list = wissensgebietService.getAllWissensgebiete();
         return ResponseEntity.ok(list);
     }
 
     @Operation(summary = "Aktualisiert ein Wissensgebiet", description = "Aktualisiert den Namen und das Einarbeitung-Flag eines bestehenden Wissensgebiets anhand der ID.")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateWissensgebiet(@PathVariable Long id, @Valid @RequestBody Wissensgebiet wissensgebiet) {
-        // Eindeutigkeitsprüfung für Name (außer beim eigenen Datensatz)
-        if (wissensgebietRepository.existsByNameAndIdNot(wissensgebiet.getName(), id)) {
-            return ResponseEntity.badRequest().body("Ein Wissensgebiet mit diesem Namen existiert bereits.");
-        }
-        return wissensgebietRepository.findById(id)
-            .map(existing -> {
-                existing.setName(wissensgebiet.getName());
-                existing.setEinarbeitung(wissensgebiet.getEinarbeitung());
-                Wissensgebiet updated = wissensgebietRepository.save(existing);
-                return ResponseEntity.ok(updated);
-            })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        return wissensgebietService.updateWissensgebiet(id, wissensgebiet);
     }
 
     @Operation(summary = "Löscht ein Wissensgebiet", description = "Löscht ein Wissensgebiet anhand der ID.")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteWissensgebiet(@PathVariable Long id) {
-        if (!wissensgebietRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        try {
-            wissensgebietRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
-            // Wissensgebiet ist noch mit Wissensbereichen verknüpft
-            return ResponseEntity.badRequest().body("Um das Wissensgebiet zu löschen, müssen zuerst alle zugehörigen Wissensbereiche gelöscht werden.");
-        }
+        return wissensgebietService.deleteWissensgebiet(id);
     }
 }

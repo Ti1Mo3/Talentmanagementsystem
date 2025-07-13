@@ -60,7 +60,7 @@ public class WissensbereichService {
                 }
                 boolean exists = wissensbereichRepository.existsByNameAndWissensgebiet(wissensbereich.getName(), gebiet);
                 if (exists) {
-                    return badRequest("Ein Wissensbereich mit diesem Namen existiert bereits.");
+                    return badRequest("Ein Wissensbereich mit diesem Namen und Wissensgebiet existiert bereits.");
                 }
                 wissensbereich.setWissensgebiet(gebiet);
             } else {
@@ -88,7 +88,7 @@ public class WissensbereichService {
         }
         boolean exists = wissensbereichRepository.existsByNameAndWissensgebietAndIdNot(wissensbereich.getName(), gebiet, id);
         if (exists) {
-            return badRequest("Ein Wissensbereich mit diesem Namen existiert bereits.");
+            return badRequest("Ein Wissensbereich mit diesem Namen und Wissensgebiet existiert bereits.");
         }
         existing.setName(wissensbereich.getName());
         existing.setEinarbeitung(wissensbereich.getEinarbeitung());
