@@ -2,6 +2,7 @@ package com.example.talentmanagement.service;
 
 import com.example.talentmanagement.entity.Wissensgebiet;
 import com.example.talentmanagement.repository.WissensgebietRepository;
+import com.example.talentmanagement.repository.WissensbereichRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +13,12 @@ import org.springframework.http.ResponseEntity;
 @Service
 public class WissensgebietService {
     private final WissensgebietRepository wissensgebietRepository;
+    private final WissensbereichRepository wissensbereichRepository;
 
     @Autowired
-    public WissensgebietService(WissensgebietRepository wissensgebietRepository) {
+    public WissensgebietService(WissensgebietRepository wissensgebietRepository, WissensbereichRepository wissensbereichRepository) {
         this.wissensgebietRepository = wissensgebietRepository;
+        this.wissensbereichRepository = wissensbereichRepository;
     }
 
     private ResponseEntity<String> badRequest(String message) {
@@ -43,9 +46,20 @@ public class WissensgebietService {
             return badRequest("Ein Wissensgebiet mit diesem Namen existiert bereits.");
         }
         Wissensgebiet existing = existingOpt.get();
+        boolean einarbeitungAlt = existing.getEinarbeitung() != null ? existing.getEinarbeitung() : false;
+        boolean einarbeitungNeu = wissensgebiet.getEinarbeitung() != null ? wissensgebiet.getEinarbeitung() : false;
         existing.setName(wissensgebiet.getName());
         existing.setEinarbeitung(wissensgebiet.getEinarbeitung());
         Wissensgebiet updated = wissensgebietRepository.save(existing);
+
+        // Wenn Einarbeitung von true auf false geändert wurde, alle zugehörigen Wissensbereiche ebenfalls auf false setzen
+        if (einarbeitungAlt && !einarbeitungNeu) {
+            List<com.example.talentmanagement.entity.Wissensbereich> bereiche = wissensbereichRepository.findByWissensgebiet_Id(id);
+            for (com.example.talentmanagement.entity.Wissensbereich bereich : bereiche) {
+                bereich.setEinarbeitung(false);
+            }
+            wissensbereichRepository.saveAll(bereiche);
+        }
         return ResponseEntity.ok(updated);
     }
 
