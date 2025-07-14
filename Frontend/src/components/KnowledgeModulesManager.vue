@@ -71,27 +71,54 @@
         <button class="add-btn" @click="addModule" title="Neuen Wissensbaustein hinzufügen" v-if="!adding">
           <svg width="28" height="28" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M10 6v8M6 10h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <form v-else @submit.prevent="saveNewModule" class="add-form add-form-grid">
-          <label class="add-label">Wissensbereich</label>
-          <select v-model="newModule.wissensbereichId" class="add-input">
-            <option disabled value="">Wissensbereich auswählen</option>
-            <option v-for="bereich in bereiche" :key="bereich.id" :value="bereich.id">{{ bereich.name }}</option>
-          </select>
-          <input v-model="newModule.name" type="text" placeholder="Name des Wissensbausteins" autofocus class="add-input" />
-          <select v-model="newModule.level" class="add-input">
-            <option disabled value="">Level auswählen</option>
-            <option value="GRUNDWISSEN">GRUNDWISSEN</option>
-            <option value="BERATERWISSEN">BERATERWISSEN</option>
-            <option value="EXPERTENWISSEN">EXPERTENWISSEN</option>
-          </select>
-          <input v-model.number="newModule.reihenfolge" type="number" min="1" max="10" class="add-input" placeholder="Reihenfolge" />
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="newModule.einarbeitung" />
-            Einarbeitung
-          </label>
-          <div style="display: flex; gap: 0.7rem;">
-            <button type="submit" class="save-btn" :disabled="!newModule.name?.trim() || !newModule.level || !newModule.wissensbereichId || !newModule.reihenfolge">Speichern</button>
-            <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+        <form v-else @submit.prevent="saveNewModule" class="add-form-2row">
+          <div class="add-form-row-1">
+            <span class="add-form-field">
+              <label for="modul-gebiet" class="add-form-label">Wissensgebiet</label>
+              <select id="modul-gebiet" v-model="newModule.wissensgebietId" class="add-input">
+                <option :value="null">Wissensgebiet auswählen</option>
+                <option v-for="gebiet in gebiete" :key="gebiet.id" :value="gebiet.id">{{ gebiet.name }}</option>
+              </select>
+            </span>
+            <span class="add-form-field">
+              <label for="modul-bereich" class="add-form-label">Wissensbereich</label>
+              <select id="modul-bereich" v-model="newModule.wissensbereichId" class="add-input" :disabled="!newModule.wissensgebietId">
+                <option :value="null">Wissensbereich auswählen</option>
+                <option v-for="bereich in bereiche.filter(b => b.wissensgebietId === newModule.wissensgebietId)" :key="bereich.id" :value="bereich.id">{{ bereich.name }}</option>
+              </select>
+            </span>
+            <span class="add-form-empty"></span>
+            <span class="add-form-empty"></span>
+            <span class="add-form-empty"></span>
+            <span class="add-form-empty"></span>
+          </div>
+          <div class="add-form-row-2-fixed">
+            <div class="add-form-field">
+              <label for="modul-name">Name des Wissensbausteins</label>
+              <input id="modul-name" v-model="newModule.name" type="text" placeholder="Name des Wissensbausteins" autofocus class="add-input" />
+            </div>
+            <div class="add-form-field">
+              <label for="modul-level">Level</label>
+              <select id="modul-level" v-model="newModule.level" class="add-input">
+                <option disabled value="">Level auswählen</option>
+                <option value="GRUNDWISSEN">GRUNDWISSEN</option>
+                <option value="BERATERWISSEN">BERATERWISSEN</option>
+                <option value="EXPERTENWISSEN">EXPERTENWISSEN</option>
+              </select>
+            </div>
+            <div class="add-form-field">
+              <label for="modul-reihenfolge">Reihenfolge</label>
+              <input id="modul-reihenfolge" v-model.number="newModule.reihenfolge" type="number" min="1" max="10" class="add-input" placeholder="Reihenfolge" />
+            </div>
+            <div class="add-form-field" style="display: flex; align-items: center; gap: 0.7rem;">
+              <input id="modul-einarbeitung" type="checkbox" v-model="newModule.einarbeitung" style="margin-right: 0.5em;" />
+              <label for="modul-einarbeitung" style="margin-bottom:0;">Einarbeitung</label>
+            </div>
+            <div class="add-form-field add-form-actions">
+              <button type="submit" class="save-btn"
+                :disabled="!newModule.name?.trim() || !newModule.level || !newModule.wissensbereichId || !newModule.wissensgebietId || !newModule.reihenfolge">Speichern</button>
+              <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
+            </div>
           </div>
         </form>
       </div>
@@ -138,8 +165,14 @@ const store = useKnowledgeStore();
 // State
 const module = ref<any[]>([]); // Wissensbausteine
 const bereiche = ref<any[]>([]); // Wissensbereiche
-const newModule = ref({ name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null as number | null });
-const adding = ref(false);
+const newModule = ref({
+  name: '',
+  level: '',
+  einarbeitung: false,
+  reihenfolge: 1,
+  wissensbereichId: null as number | null,
+  wissensgebietId: null as number | null,
+});const adding = ref(false);
 const showDeleteModal = ref(false);
 const moduleToDelete = ref<any | null>(null);
 const editingId = ref<number | null>(null);
@@ -147,18 +180,21 @@ const editedModule = ref({ name: '', level: '', einarbeitung: false, reihenfolge
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
 const selectedAreaId = ref<number|null>(null);
+const gebiete = ref<any[]>([]);
 
 // Daten laden
 async function fetchModules() {
   store.setLoading(true);
   store.setError(null);
   try {
-    const [modulRes, bereichRes] = await Promise.all([
+    const [modulRes, bereichRes, gebietRes] = await Promise.all([
       apiService.get('/wissensbaustein'),
       apiService.get('/wissensbereich'),
+      apiService.get('/wissensgebiet'),
     ]);
     module.value = modulRes.data;
     bereiche.value = bereichRes.data;
+    gebiete.value = gebietRes.data;
     store.setItems(modulRes.data);
   } catch (error: any) {
     store.setError('Fehler beim Laden der Wissensbausteine');
@@ -166,7 +202,6 @@ async function fetchModules() {
     store.setLoading(false);
   }
 }
-
 async function fetchModulesByBereich(bereichId: number) {
   store.setLoading(true);
   store.setError(null);
@@ -260,8 +295,14 @@ function cancelDeleteModule() {
 // Hinzufügen
 function addModule() {
   adding.value = true;
-  newModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null };
-}
+  newModule.value = {
+    name: '',
+    level: '',
+    einarbeitung: false,
+    reihenfolge: 1,
+    wissensbereichId: null,
+    wissensgebietId: null,
+  };}
 
 async function saveNewModule() {
   if (!newModule.value.name?.trim() || !newModule.value.level || !newModule.value.wissensbereichId || !newModule.value.reihenfolge) return;
@@ -279,7 +320,7 @@ async function saveNewModule() {
     module.value.unshift(response.data);
     store.setItems(module.value);
     adding.value = false;
-    newModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null };
+    newModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null, wissensgebietId: null };
     selectedAreaId.value = null;
     await fetchModules();
   } catch (error: any) {
@@ -291,7 +332,7 @@ async function saveNewModule() {
 
 function cancelAdd() {
   adding.value = false;
-  newModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null };
+  newModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null, wissensgebietId: null };
   addError.value = null;
 }
 
@@ -411,22 +452,34 @@ h2 {
   margin-top: 0.9rem;
   gap: 0.7rem;
 }
-.add-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr;
-  grid-template-rows: auto;
-  gap: 0.7rem;
-  align-items: center;
-  margin-top: 0.2rem;
-  overflow: visible;
+.add-form-2row {
+  width: 100%;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 0.2rem;
+  box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+  padding: 0.6rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
-.add-form.add-form-grid {
+.add-form-row-1, .add-form-row-2 {
   display: grid;
-  grid-template-columns: auto 1.5fr 1.5fr 1.2fr 1.2fr;
+  grid-template-columns: 2fr 2fr 1.2fr 1fr 1.2fr 1fr;
   align-items: center;
-  gap: 0.7rem;
-  margin-top: 0.2rem;
-  overflow: visible;
+  font-size: 1.12rem;
+  gap: 0.2rem;
+}
+.add-form-label {
+  font-weight: 600;
+  color: #334155;
+  margin-right: 0.5em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+.add-form-empty {
+  display: none;
 }
 .add-input {
   flex: unset;
@@ -445,23 +498,25 @@ h2 {
   margin-left: 0;
   white-space: nowrap;
 }
-.add-form label {
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
-  font-size: 1.13rem;
-  color: #334155;
-  font-weight: 700;
-  margin-left: 1.2em;
-  white-space: nowrap;
+.add-form-row-2-fixed {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr 1.4fr;
+  align-items: end;
+  font-size: 1.12rem;
+  gap: 1.2rem;
+  margin-top: 0.2rem;
 }
-.add-form select.add-input {
-  appearance: none;
-  background: #fff url('data:image/svg+xml;utf8,<svg fill="%23334155" height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 8.293a1 1 0 011.414 0L10 9.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>') no-repeat right 0.8em center/1.2em 1.2em;
-  padding-right: 2.2em;
-  cursor: pointer;
-  /* Dropdown nach unten bevorzugen */
-  /* Browser öffnen Dropdowns nach unten, wenn genug Platz ist. Durch overflow: visible und z-index wird das Verhalten unterstützt. */
+.add-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.add-form-actions {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.7rem;
+  justify-content: flex-end;
+  margin-top: 1.1em;
 }
 .save-btn {
   background: #22c55e;
