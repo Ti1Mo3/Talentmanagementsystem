@@ -14,58 +14,82 @@
     </div>
     <div v-else class="knowledge-areas-table">
       <div class="table-header">
+        <span>Wissensgebiet</span>
         <span>Wissensbereich</span>
         <span>Name</span>
         <span>Level</span>
-        <span>Reihenfolge</span>
         <span>Einarbeitung</span>
         <span class="actions-header"></span>
       </div>
-      <div class="table-row" v-for="modul in module" :key="modul.id">
-        <!-- Wissensbereich -->
-        <span>
-          {{ bereiche.find(b => b.id === modul.wissensbereichId)?.name }}
-        </span>
-        <!-- Name -->
-        <span v-if="editingId !== modul.id">{{ modul.name }}</span>
-        <span v-else>
-          <input v-model="editedModule.name" type="text" class="add-input" placeholder="Name des Wissensbausteins" />
-        </span>
-        <!-- Level -->
-        <span v-if="editingId !== modul.id">{{ modul.level }}</span>
-        <span v-else>
-          <select v-model="editedModule.level" class="add-input">
-            <option disabled value="">Level auswählen</option>
-            <option value="GRUNDWISSEN">GRUNDWISSEN</option>
-            <option value="BERATERWISSEN">BERATERWISSEN</option>
-            <option value="EXPERTENWISSEN">EXPERTENWISSEN</option>
-          </select>
-        </span>
-        <!-- Reihenfolge -->
-        <span v-if="editingId !== modul.id">{{ modul.reihenfolge }}</span>
-        <span v-else>
-          <input v-model.number="editedModule.reihenfolge" type="number" min="1" max="10" class="add-input" placeholder="Reihenfolge" />
-        </span>
-        <!-- Einarbeitung -->
-        <span v-if="editingId !== modul.id">
-          <input type="checkbox" disabled :checked="modul.einarbeitung" />
-        </span>
-        <span v-else>
-          <input type="checkbox" v-model="editedModule.einarbeitung" />
-        </span>
-        <!-- Aktionen -->
-        <span v-if="editingId !== modul.id" class="actions">
-          <button class="icon-btn" @click="editModule(modul)" title="Bearbeiten">
-            <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="#2563eb" stroke-width="1.5"/><path d="M13.06 6.44l1.5-1.5a1 1 0 0 1 1.41 0l0.59 0.59a1 1 0 0 1 0 1.41l-1.5 1.5-2.5-2.5z" stroke="#2563eb" stroke-width="1.5"/></svg>
-          </button>
-          <button class="icon-btn" @click="deleteModule(modul)" title="Löschen">
-            <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M6 7v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7" stroke="#ef4444" stroke-width="1.5"/><path d="M9 10v4m2-4v4M3 7h14M8 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="#334155" stroke-width="1.5"/></svg>
-          </button>
-        </span>
-        <span v-else class="actions" style="gap: 0.7rem; margin-left: 1.5rem;">
-          <button type="button" class="save-btn" @click="saveEditModule(modul)" :disabled="!editedModule.name?.trim() || !editedModule.level || !editedModule.wissensbereichId || !editedModule.reihenfolge">Speichern</button>
-          <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
-        </span>
+      <div class="table-row" v-for="modul in module" :key="modul.id" style="column-gap: 0;">
+        <template v-if="editingId !== modul.id">
+          <span>
+            {{ gebiete.find(g => g.id === modul.wissensgebietId)?.name }}
+          </span>
+          <span>
+            {{ bereiche.find(b => b.id === modul.wissensbereichId)?.name }}
+          </span>
+          <span>{{ modul.name }}</span>
+          <span>{{ modul.level }}</span>
+          <span>
+            <input type="checkbox" disabled :checked="modul.einarbeitung" />
+          </span>
+          <span class="actions">
+            <button class="icon-btn" @click="editModule(modul)" title="Bearbeiten">
+              <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="#2563eb" stroke-width="1.5"/><path d="M13.06 6.44l1.5-1.5a1 1 0 0 1 1.41 0l0.59 0.59a1 1 0 0 1 0 1.41l-1.5 1.5-2.5-2.5z" stroke="#2563eb" stroke-width="1.5"/></svg>
+            </button>
+            <button class="icon-btn" @click="deleteModule(modul)" title="Löschen">
+              <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M6 7v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7" stroke="#ef4444" stroke-width="1.5"/><path d="M9 10v4m2-4v4M3 7h14M8 7V5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" stroke="#334155" stroke-width="1.5"/></svg>
+            </button>
+          </span>
+        </template>
+        <template v-else>
+          <form @submit.prevent="saveEditModule(modul)" class="add-form-2row" style="width:100%;margin-bottom:0;grid-column: 1 / -1;display: grid;grid-template-columns: 1fr;">
+            <div class="add-form-row-1">
+              <span class="add-form-field">
+                <label class="add-form-label">Wissensgebiet</label>
+                <select v-model="editedModule.wissensgebietId" class="add-input">
+                  <option :value="null">Wissensgebiet auswählen</option>
+                  <option v-for="gebiet in gebiete" :key="gebiet.id" :value="gebiet.id">{{ gebiet.name }}</option>
+                </select>
+              </span>
+              <span class="add-form-field">
+                <label class="add-form-label">Wissensbereich</label>
+                <select v-model="editedModule.wissensbereichId" class="add-input" :disabled="!editedModule.wissensgebietId">
+                  <option :value="null">Wissensbereich auswählen</option>
+                  <option v-for="bereich in bereiche.filter(b => b.wissensgebietId === editedModule.wissensgebietId)" :key="bereich.id" :value="bereich.id">{{ bereich.name }}</option>
+                </select>
+              </span>
+              <span class="add-form-field">
+                <label class="add-form-label">Name des Wissensbausteins</label>
+                <input v-model="editedModule.name" type="text" class="add-input" placeholder="Name des Wissensbausteins" />
+              </span>
+              <span class="add-form-field">
+                <label class="add-form-label">Level</label>
+                <select v-model="editedModule.level" class="add-input">
+                  <option disabled value="">Level auswählen</option>
+                  <option value="GRUNDWISSEN">GRUNDWISSEN</option>
+                  <option value="BERATERWISSEN">BERATERWISSEN</option>
+                  <option value="EXPERTENWISSEN">EXPERTENWISSEN</option>
+                </select>
+              </span>
+            </div>
+            <div class="add-form-row-2-fixed">
+              <div class="add-form-field" style="display: flex; align-items: center; gap: 0.7rem;">
+                <input type="checkbox" v-model="editedModule.einarbeitung" style="margin-right: 0.5em;" />
+                <label class="add-form-label" style="margin-bottom:0;">Einarbeitung</label>
+              </div>
+              <div v-if="editedModule.einarbeitung" class="add-form-field">
+                <label class="add-form-label">Reihenfolge</label>
+                <input v-model.number="editedModule.reihenfolge" type="number" min="1" max="10" class="add-input" placeholder="Reihenfolge" />
+              </div>
+              <div class="add-form-field add-form-actions">
+                <button type="submit" class="save-btn" :disabled="!editedModule.name?.trim() || !editedModule.level || !editedModule.wissensbereichId || !editedModule.wissensgebietId">Speichern</button>
+                <button type="button" class="cancel-btn" @click="cancelEdit">Abbrechen</button>
+              </div>
+            </div>
+          </form>
+        </template>
       </div>
       <div class="add-row">
         <button class="add-btn" @click="addModule" title="Neuen Wissensbaustein hinzufügen" v-if="!adding">
@@ -87,36 +111,32 @@
                 <option v-for="bereich in bereiche.filter(b => b.wissensgebietId === newModule.wissensgebietId)" :key="bereich.id" :value="bereich.id">{{ bereich.name }}</option>
               </select>
             </span>
-            <span class="add-form-empty"></span>
-            <span class="add-form-empty"></span>
-            <span class="add-form-empty"></span>
-            <span class="add-form-empty"></span>
-          </div>
-          <div class="add-form-row-2-fixed">
-            <div class="add-form-field">
-              <label for="modul-name">Name des Wissensbausteins</label>
+            <span class="add-form-field">
+              <label for="modul-name"  class="add-form-label">Name des Wissensbausteins</label>
               <input id="modul-name" v-model="newModule.name" type="text" placeholder="Name des Wissensbausteins" autofocus class="add-input" />
-            </div>
-            <div class="add-form-field">
-              <label for="modul-level">Level</label>
+            </span>
+            <span class="add-form-field">
+              <label for="modul-level" class="add-form-label">Level</label>
               <select id="modul-level" v-model="newModule.level" class="add-input">
                 <option disabled value="">Level auswählen</option>
                 <option value="GRUNDWISSEN">GRUNDWISSEN</option>
                 <option value="BERATERWISSEN">BERATERWISSEN</option>
                 <option value="EXPERTENWISSEN">EXPERTENWISSEN</option>
               </select>
-            </div>
-            <div class="add-form-field">
-              <label for="modul-reihenfolge">Reihenfolge</label>
-              <input id="modul-reihenfolge" v-model.number="newModule.reihenfolge" type="number" min="1" max="10" class="add-input" placeholder="Reihenfolge" />
-            </div>
+            </span>
+          </div>
+          <div class="add-form-row-2-fixed">
             <div class="add-form-field" style="display: flex; align-items: center; gap: 0.7rem;">
               <input id="modul-einarbeitung" type="checkbox" v-model="newModule.einarbeitung" style="margin-right: 0.5em;" />
-              <label for="modul-einarbeitung" style="margin-bottom:0;">Einarbeitung</label>
+              <label for="modul-einarbeitung" class="add-form-label" style="margin-bottom:0;">Einarbeitung</label>
+            </div>
+            <div v-if="newModule.einarbeitung" class="add-form-field">
+              <label for="modul-reihenfolge"  class="add-form-label">Reihenfolge</label>
+              <input id="modul-reihenfolge" v-model.number="newModule.reihenfolge" type="number" min="1" max="10" class="add-input" placeholder="Reihenfolge" />
             </div>
             <div class="add-form-field add-form-actions">
               <button type="submit" class="save-btn"
-                :disabled="!newModule.name?.trim() || !newModule.level || !newModule.wissensbereichId || !newModule.wissensgebietId || !newModule.reihenfolge">Speichern</button>
+                :disabled="!newModule.name?.trim() || !newModule.level || !newModule.wissensbereichId || !newModule.wissensgebietId">Speichern</button>
               <button type="button" class="cancel-btn" @click="cancelAdd">Abbrechen</button>
             </div>
           </div>
@@ -176,7 +196,14 @@ const newModule = ref({
 const showDeleteModal = ref(false);
 const moduleToDelete = ref<any | null>(null);
 const editingId = ref<number | null>(null);
-const editedModule = ref({ name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null as number | null });
+const editedModule = ref({
+  name: '',
+  level: '',
+  einarbeitung: false,
+  reihenfolge: 1,
+  wissensbereichId: null as number | null,
+  wissensgebietId: null as number | null,
+});
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
 const selectedAreaId = ref<number|null>(null);
@@ -227,16 +254,17 @@ function editModule(modul: any) {
     einarbeitung: modul.einarbeitung,
     reihenfolge: modul.reihenfolge,
     wissensbereichId: modul.wissensbereichId ?? null,
+    wissensgebietId: modul.wissensgebietId ?? null,
   };
 }
 
 function cancelEdit() {
   editingId.value = null;
-  editedModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null };
+  editedModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null, wissensgebietId: null };
 }
 
 async function saveEditModule(modul: any) {
-  if (!editedModule.value.name?.trim() || !editedModule.value.level || !editedModule.value.wissensbereichId || !editedModule.value.reihenfolge) return;
+  if (!editedModule.value.name?.trim() || !editedModule.value.level || !editedModule.value.wissensbereichId || !editedModule.value.wissensgebietId) return;
   store.setLoading(true);
   store.setError(null);
   editError.value = null;
@@ -247,6 +275,7 @@ async function saveEditModule(modul: any) {
       einarbeitung: editedModule.value.einarbeitung,
       reihenfolge: editedModule.value.reihenfolge,
       wissensbereichId: editedModule.value.wissensbereichId,
+      wissensgebietId: editedModule.value.wissensgebietId,
     });
     const idx = module.value.findIndex((m) => m.id === modul.id);
     if (idx !== -1) {
@@ -254,7 +283,7 @@ async function saveEditModule(modul: any) {
       store.setItems(module.value);
     }
     editingId.value = null;
-    editedModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null };
+    editedModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null, wissensgebietId: null };
     selectedAreaId.value = null;
     await fetchModules();
   } catch (error: any) {
@@ -305,7 +334,13 @@ function addModule() {
   };}
 
 async function saveNewModule() {
-  if (!newModule.value.name?.trim() || !newModule.value.level || !newModule.value.wissensbereichId || !newModule.value.reihenfolge) return;
+  if (
+    !newModule.value.name?.trim() ||
+    !newModule.value.level ||
+    !newModule.value.wissensbereichId ||
+    !newModule.value.wissensgebietId ||
+    !newModule.value.reihenfolge
+  ) return;
   store.setLoading(true);
   store.setError(null);
   addError.value = null;
@@ -316,6 +351,7 @@ async function saveNewModule() {
       einarbeitung: newModule.value.einarbeitung,
       reihenfolge: newModule.value.reihenfolge,
       wissensbereichId: newModule.value.wissensbereichId,
+      wissensgebietId: newModule.value.wissensgebietId,
     });
     module.value.unshift(response.data);
     store.setItems(module.value);
@@ -388,6 +424,7 @@ h2 {
   align-items: center;
   font-size: 1.12rem;
   padding: 0.4rem 0;
+  column-gap: 1.2rem;
 }
 .table-header > span,
 .table-row > span,
@@ -463,12 +500,25 @@ h2 {
   flex-direction: column;
   gap: 0.2rem;
 }
-.add-form-row-1, .add-form-row-2 {
+.add-form-row-1 {
   display: grid;
-  grid-template-columns: 2fr 2fr 1.2fr 1fr 1.2fr 1fr;
+  grid-template-columns: 1.2fr 1.2fr 1.2fr 1.2fr;
+  align-items: end;
+  font-size: 1.12rem;
+  gap: 2.0rem;
+}
+.add-form-row-1 .add-form-field:nth-child(4) {
+  margin-left: 1.5rem;
+}
+.add-form-row-1 .add-form-field {
+  min-width: 0;
+}
+.add-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   align-items: center;
   font-size: 1.12rem;
-  gap: 0.2rem;
+  gap: 1rem;
 }
 .add-form-label {
   font-weight: 600;
