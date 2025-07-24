@@ -1,8 +1,7 @@
-package com.example.talentmanagement.api;
+package com.example.talentmanagement.api.controller;
 
 import com.example.talentmanagement.api.dto.WissensbereichDto;
 import com.example.talentmanagement.entity.Wissensbereich;
-import com.example.talentmanagement.entity.Wissensgebiet;
 import com.example.talentmanagement.repository.WissensbereichRepository;
 import com.example.talentmanagement.repository.WissensgebietRepository;
 import com.example.talentmanagement.service.WissensbereichService;

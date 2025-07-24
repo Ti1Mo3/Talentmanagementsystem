@@ -1,4 +1,4 @@
-package com.example.talentmanagement.api;
+package com.example.talentmanagement.api.controller;
 
 import com.example.talentmanagement.entity.Wissensgebiet;
 import com.example.talentmanagement.service.WissensgebietService;

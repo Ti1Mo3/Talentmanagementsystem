@@ -1,8 +1,7 @@
-package com.example.talentmanagement.api;
+package com.example.talentmanagement.api.controller;
 
 import com.example.talentmanagement.api.dto.WissensbausteinDto;
 import com.example.talentmanagement.entity.Wissensbaustein;
-import com.example.talentmanagement.entity.Wissensbereich;
 import com.example.talentmanagement.service.WissensbausteinService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
