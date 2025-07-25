@@ -1,11 +1,15 @@
 <template>
   <div class="knowledge-areas-wrapper">
     <h2>Wissensbausteine verwalten</h2>
-    <!-- Filter Dropdown -->
-    <div style="width:100%;max-width:500px;margin-bottom:1.2rem;display:flex;align-items:center;gap:1.2rem;">
-      <select id="areaFilter" v-model="selectedAreaId" @change="onAreaFilterChange" class="add-input" style="min-width:180px;">
-        <option :value="null">Wissensbereich auswählen</option>
-        <option v-for="bereich in bereiche" :key="bereich.id" :value="bereich.id">{{ bereich.name }}</option>
+    <!-- Filter Dropdowns -->
+    <div style="width:100%;max-width:700px;margin-bottom:1.2rem;display:flex;align-items:center;gap:1.2rem;">
+      <select id="gebietFilter" v-model.number="selectedGebietId" class="add-input" style="min-width:180px;">
+        <option :value="''">Wissensgebiet auswählen</option>
+        <option v-for="gebiet in gebiete" :key="gebiet.id" :value="gebiet.id">{{ gebiet.name }}</option>
+      </select>
+      <select id="areaFilter" v-model.number="selectedAreaId" class="add-input" style="min-width:180px;" :disabled="!selectedGebietId">
+        <option :value="''">Wissensbereich auswählen</option>
+        <option v-for="bereich in bereicheGefiltert" :key="bereich.id" :value="bereich.id">{{ bereich.name }}</option>
       </select>
     </div>
     <div v-if="store.loading" class="loading-indicator">
@@ -16,7 +20,7 @@
       <div class="table-header">
         <span>Wissensgebiet</span>
         <span>Wissensbereich</span>
-        <span>Name</span>
+        <span>Wissensbaustein</span>
         <span>Level</span>
         <span>Einarbeitung</span>
         <span class="actions-header"></span>
@@ -175,7 +179,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import apiService from '../services/apiService';
 import { useKnowledgeStore } from '../store/knowledge';
 
@@ -206,8 +210,13 @@ const editedModule = ref({
 });
 const addError = ref<string | null>(null);
 const editError = ref<string | null>(null);
-const selectedAreaId = ref<number|null>(null);
+const selectedAreaId = ref<number | ''>("");
+const selectedGebietId = ref<number | ''>("");
 const gebiete = ref<any[]>([]);
+const bereicheGefiltert = computed(() => {
+  if (!selectedGebietId.value) return bereiche.value;
+  return bereiche.value.filter(b => b.wissensgebietId === Number(selectedGebietId.value));
+});
 
 // Daten laden
 async function fetchModules() {
@@ -234,6 +243,35 @@ async function fetchModulesByBereich(bereichId: number) {
   store.setError(null);
   try {
     const modulRes = await apiService.get(`/wissensbaustein/byWissensbereich/${bereichId}`);
+    module.value = modulRes.data;
+    store.setItems(modulRes.data);
+  } catch (error: any) {
+    store.setError('Fehler beim Filtern der Wissensbausteine');
+  } finally {
+    store.setLoading(false);
+  }
+}
+
+async function fetchModulesByGebiet(gebietId: number) {
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    // Neue Route für Filterung nach Wissensgebiet
+    const modulRes = await apiService.get(`/wissensbaustein/byWissensgebiet/${gebietId}`);
+    module.value = modulRes.data;
+    store.setItems(modulRes.data);
+  } catch (error: any) {
+    store.setError('Fehler beim Filtern der Wissensbausteine');
+  } finally {
+    store.setLoading(false);
+  }
+}
+
+async function fetchModulesByGebietUndBereich(gebietId: number, bereichId: number) {
+  store.setLoading(true);
+  store.setError(null);
+  try {
+    const modulRes = await apiService.get(`/wissensbaustein/byWissensgebietUndBereich?gebietId=${gebietId}&bereichId=${bereichId}`);
     module.value = modulRes.data;
     store.setItems(modulRes.data);
   } catch (error: any) {
@@ -284,7 +322,7 @@ async function saveEditModule(modul: any) {
     }
     editingId.value = null;
     editedModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null, wissensgebietId: null };
-    selectedAreaId.value = null;
+    selectedAreaId.value = '';
     await fetchModules();
   } catch (error: any) {
     editError.value = error?.response?.data || 'Fehler beim Bearbeiten des Wissensbausteins';
@@ -357,7 +395,7 @@ async function saveNewModule() {
     store.setItems(module.value);
     adding.value = false;
     newModule.value = { name: '', level: '', einarbeitung: false, reihenfolge: 1, wissensbereichId: null, wissensgebietId: null };
-    selectedAreaId.value = null;
+    selectedAreaId.value = '';
     await fetchModules();
   } catch (error: any) {
     addError.value = error?.response?.data || 'Fehler beim Hinzufügen des Wissensbausteins';
@@ -372,16 +410,34 @@ function cancelAdd() {
   addError.value = null;
 }
 
-function onAreaFilterChange() {
-  if (selectedAreaId.value) {
-    fetchModulesByBereich(selectedAreaId.value);
+
+
+import { watch } from 'vue';
+
+watch(selectedGebietId, (newVal) => {
+  selectedAreaId.value = '';
+  if (newVal) {
+    fetchModulesByGebiet(Number(newVal));
   } else {
     fetchModules();
   }
-}
+});
+
+watch(selectedAreaId, (newVal) => {
+  if (newVal && selectedGebietId.value) {
+    fetchModulesByGebietUndBereich(Number(selectedGebietId.value), Number(newVal));
+  } else if (newVal) {
+    fetchModulesByBereich(Number(newVal));
+  } else if (selectedGebietId.value) {
+    fetchModulesByGebiet(Number(selectedGebietId.value));
+  } else {
+    fetchModules();
+  }
+});
 
 function resetAreaFilter() {
-  selectedAreaId.value = null;
+  selectedAreaId.value = '';
+  selectedGebietId.value = '';
   fetchModules();
 }
 </script>

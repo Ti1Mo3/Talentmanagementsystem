@@ -19,12 +19,14 @@ public class WissensbereichController {
     private final WissensbereichRepository wissensbereichRepository;
     private final WissensgebietRepository wissensgebietRepository;
     private final WissensbereichService wissensbereichService;
+    private final com.example.talentmanagement.repository.WissensbausteinRepository wissensbausteinRepository;
 
     @Autowired
-    public WissensbereichController(WissensbereichRepository wissensbereichRepository, WissensgebietRepository wissensgebietRepository, WissensbereichService wissensbereichService) {
+    public WissensbereichController(WissensbereichRepository wissensbereichRepository, WissensgebietRepository wissensgebietRepository, WissensbereichService wissensbereichService, com.example.talentmanagement.repository.WissensbausteinRepository wissensbausteinRepository) {
         this.wissensbereichRepository = wissensbereichRepository;
         this.wissensgebietRepository = wissensgebietRepository;
         this.wissensbereichService = wissensbereichService;
+        this.wissensbausteinRepository = wissensbausteinRepository;
     }
 
     @Operation(summary = "Fügt einen neuen Wissensbereich hinzu", description = "Legt einen neuen Wissensbereich mit dem angegebenen Namen an. Wissensbausteine werden nicht berücksichtigt.")
@@ -53,15 +55,17 @@ public class WissensbereichController {
         return response;
     }
 
-    @Operation(summary = "Löscht einen Wissensbereich", description = "Löscht einen Wissensbereich anhand der ID. Wissensbausteine sind davon nicht betroffen.")
+    @Operation(summary = "Löscht einen Wissensbereich", description = "Löscht einen Wissensbereich anhand der ID. Der Wissensbereich darf nicht gelöscht werden, wenn ihm mindestens ein Wissensbaustein zugewiesen ist.")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteWissensbereich(@PathVariable Long id) {
-        if (wissensbereichRepository.existsById(id)) {
-            wissensbereichRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> deleteWissensbereich(@PathVariable Long id) {
+        if (!wissensbereichRepository.existsById(id)) {
+            return ResponseEntity.status(404).body("Der Wissensbereich mit der angegebenen ID wurde nicht gefunden.");
         }
+        if (wissensbausteinRepository.existsByWissensbereich_Id(id)) {
+            return ResponseEntity.badRequest().body("Um den Wissensbereich zu löschen, müssen zuerst alle zugehörigen Wissensbausteine gelöscht werden.");
+        }
+        wissensbereichRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Liste der Wissensbereiche zu einem Wissensgebiet", description = "Gibt alle Wissensbereiche für ein bestimmtes Wissensgebiet zurück. Wissensbausteine werden nicht mitgeliefert.")

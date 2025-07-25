@@ -15,10 +15,12 @@ import java.util.List;
 @RequestMapping("/api/wissensbaustein")
 public class WissensbausteinController {
     private final WissensbausteinService wissensbausteinService;
+    private final com.example.talentmanagement.repository.WissensbereichRepository wissensbereichRepository;
 
     @Autowired
-    public WissensbausteinController(WissensbausteinService wissensbausteinService) {
+    public WissensbausteinController(WissensbausteinService wissensbausteinService, com.example.talentmanagement.repository.WissensbereichRepository wissensbereichRepository) {
         this.wissensbausteinService = wissensbausteinService;
+        this.wissensbereichRepository = wissensbereichRepository;
     }
 
     @Operation(summary = "Fügt einen neuen Wissensbaustein hinzu")
@@ -72,6 +74,38 @@ public class WissensbausteinController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(bausteine);
+    }
+
+    @Operation(summary = "Liste der Wissensbausteine zu einem Wissensgebiet")
+    @GetMapping("/byWissensgebiet/{wissensgebietId}")
+    public ResponseEntity<List<WissensbausteinDto>> getWissensbausteineByWissensgebiet(@PathVariable Long wissensgebietId) {
+        // Hole alle Wissensbereiche zu diesem Gebiet
+        List<com.example.talentmanagement.entity.Wissensbereich> bereiche = wissensbereichRepository.findByWissensgebiet_Id(wissensgebietId);
+        if (bereiche == null || bereiche.isEmpty()) {
+            return ResponseEntity.ok(java.util.Collections.emptyList());
+        }
+        // Sammle alle Bausteine aus allen Bereichen
+        List<WissensbausteinDto> result = new java.util.ArrayList<>();
+        for (com.example.talentmanagement.entity.Wissensbereich bereich : bereiche) {
+            List<Wissensbaustein> bausteine = wissensbausteinService.getWissensbausteineByWissensbereich(bereich.getId());
+            result.addAll(bausteine.stream().map(this::toDto).toList());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Liste der Wissensbausteine zu Wissensgebiet und Wissensbereich")
+    @GetMapping("/byWissensgebietUndBereich")
+    public ResponseEntity<List<WissensbausteinDto>> getWissensbausteineByWissensgebietUndBereich(
+            @RequestParam Long gebietId,
+            @RequestParam Long bereichId) {
+        // Prüfe, ob der Bereich zum Gebiet gehört
+        var bereichOpt = wissensbereichRepository.findById(bereichId);
+        if (bereichOpt.isEmpty() || bereichOpt.get().getWissensgebiet() == null || !bereichOpt.get().getWissensgebiet().getId().equals(gebietId)) {
+            return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+        }
+        List<Wissensbaustein> bausteine = wissensbausteinService.getWissensbausteineByWissensbereich(bereichId);
+        List<WissensbausteinDto> result = bausteine.stream().map(this::toDto).toList();
+        return ResponseEntity.ok(result);
     }
 
     private WissensbausteinDto toDto(Wissensbaustein entity) {

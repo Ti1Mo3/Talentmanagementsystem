@@ -225,6 +225,7 @@ async function confirmDeleteSection() {
   if (!sectionToDelete.value) return;
   store.setLoading(true);
   store.setError(null);
+  editError.value = null;
   try {
     await apiService.delete(`/wissensbereich/${sectionToDelete.value.id}`);
     sections.value = sections.value.filter(s => s.id !== sectionToDelete.value!.id);
@@ -232,7 +233,10 @@ async function confirmDeleteSection() {
     showDeleteModal.value = false;
     sectionToDelete.value = null;
   } catch (error: any) {
-    store.setError('Fehler beim Löschen des Wissensbereichs');
+    // Backend-Fehlermeldung anzeigen, falls vorhanden
+    editError.value = error?.response?.data || 'Fehler beim Löschen des Wissensbereichs';
+    showDeleteModal.value = false;
+    sectionToDelete.value = null;
   } finally {
     store.setLoading(false);
   }

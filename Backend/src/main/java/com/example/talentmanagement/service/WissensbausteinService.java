@@ -45,9 +45,12 @@ public class WissensbausteinService {
             return "Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.";
         }
         wissensbaustein.setEinarbeitung(dto.einarbeitung);
-        boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich(dto.name, bereich);
+        // Prüfe, ob die Kombination aus Name, Wissensbereich und Wissensgebiet eindeutig ist
+        boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich_NameAndWissensbereich_Wissensgebiet_Id(
+            dto.name, bereich.getName(), dto.wissensgebietId
+        );
         if (exists) {
-            return "Ein Wissensbaustein mit diesem Namen existiert bereits in diesem Wissensbereich.";
+            return "Ein Wissensbaustein mit diesem Namen existiert bereits in dieser Kombination aus Wissensgebiet und Wissensbereich.";
         }
         wissensbaustein.setWissensbereich(bereich);
         Wissensbaustein saved = wissensbausteinRepository.save(wissensbaustein);
@@ -91,9 +94,11 @@ public class WissensbausteinService {
         if (dto.einarbeitung && (bereich.getEinarbeitung() == null || !bereich.getEinarbeitung())) {
             return "Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.";
         }
-        boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich(dto.name, bereich);
+        boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich_NameAndWissensbereich_Wissensgebiet_Id(
+            dto.name, bereich.getName(), dto.wissensgebietId
+        );
         if (exists && !existing.getId().equals(id)) {
-            return "Ein Wissensbaustein mit diesem Namen existiert bereits in diesem Wissensbereich.";
+            return "Ein Wissensbaustein mit diesem Namen existiert bereits in dieser Kombination aus Wissensgebiet und Wissensbereich.";
         }
         existing.setName(dto.name);
         existing.setLevel(Wissensbaustein.Level.valueOf(dto.level));
