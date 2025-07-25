@@ -3,6 +3,7 @@ package com.example.talentmanagement.service;
 import com.example.talentmanagement.entity.Wissensgebiet;
 import com.example.talentmanagement.repository.WissensgebietRepository;
 import com.example.talentmanagement.repository.WissensbereichRepository;
+import com.example.talentmanagement.repository.WissensbausteinRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +15,13 @@ import org.springframework.http.ResponseEntity;
 public class WissensgebietService {
     private final WissensgebietRepository wissensgebietRepository;
     private final WissensbereichRepository wissensbereichRepository;
+    private final WissensbausteinRepository wissensbausteinRepository;
 
     @Autowired
-    public WissensgebietService(WissensgebietRepository wissensgebietRepository, WissensbereichRepository wissensbereichRepository) {
+    public WissensgebietService(WissensgebietRepository wissensgebietRepository, WissensbereichRepository wissensbereichRepository, WissensbausteinRepository wissensbausteinRepository) {
         this.wissensgebietRepository = wissensgebietRepository;
         this.wissensbereichRepository = wissensbereichRepository;
+        this.wissensbausteinRepository = wissensbausteinRepository;
     }
 
     private ResponseEntity<String> badRequest(String message) {
@@ -55,10 +58,21 @@ public class WissensgebietService {
         // Wenn Einarbeitung von true auf false geändert wurde, alle zugehörigen Wissensbereiche ebenfalls auf false setzen
         if (einarbeitungAlt && !einarbeitungNeu) {
             List<com.example.talentmanagement.entity.Wissensbereich> bereiche = wissensbereichRepository.findByWissensgebiet_Id(id);
+            List<com.example.talentmanagement.entity.Wissensbaustein> geaenderteBausteine = new java.util.ArrayList<>();
             for (com.example.talentmanagement.entity.Wissensbereich bereich : bereiche) {
                 bereich.setEinarbeitung(false);
+                // Auch alle zugehörigen Wissensbausteine auf false setzen
+                if (bereich.getWissensbausteine() != null) {
+                    for (com.example.talentmanagement.entity.Wissensbaustein baustein : bereich.getWissensbausteine()) {
+                        baustein.setEinarbeitung(false);
+                        geaenderteBausteine.add(baustein);
+                    }
+                }
             }
             wissensbereichRepository.saveAll(bereiche);
+            if (!geaenderteBausteine.isEmpty()) {
+                wissensbausteinRepository.saveAll(geaenderteBausteine);
+            }
         }
         return ResponseEntity.ok(updated);
     }

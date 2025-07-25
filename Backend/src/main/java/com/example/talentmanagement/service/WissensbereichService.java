@@ -5,6 +5,7 @@ import com.example.talentmanagement.entity.Wissensbereich;
 import com.example.talentmanagement.entity.Wissensgebiet;
 import com.example.talentmanagement.repository.WissensbereichRepository;
 import com.example.talentmanagement.repository.WissensgebietRepository;
+import com.example.talentmanagement.repository.WissensbausteinRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,11 +16,13 @@ import java.util.List;
 public class WissensbereichService {
     private final WissensbereichRepository wissensbereichRepository;
     private final WissensgebietRepository wissensgebietRepository;
+    private final WissensbausteinRepository wissensbausteinRepository;
 
     @Autowired
-    public WissensbereichService(WissensbereichRepository wissensbereichRepository, WissensgebietRepository wissensgebietRepository) {
+    public WissensbereichService(WissensbereichRepository wissensbereichRepository, WissensgebietRepository wissensgebietRepository, WissensbausteinRepository wissensbausteinRepository) {
         this.wissensbereichRepository = wissensbereichRepository;
         this.wissensgebietRepository = wissensgebietRepository;
+        this.wissensbausteinRepository = wissensbausteinRepository;
     }
 
     public WissensbereichDto toDto(Wissensbereich entity) {
@@ -90,10 +93,26 @@ public class WissensbereichService {
         if (exists) {
             return badRequest("Ein Wissensbereich mit diesem Namen und Wissensgebiet existiert bereits.");
         }
+        Boolean einarbeitungAlt = existing.getEinarbeitung() != null ? existing.getEinarbeitung() : false;
+        Boolean einarbeitungNeu = wissensbereich.getEinarbeitung() != null ? wissensbereich.getEinarbeitung() : false;
         existing.setName(wissensbereich.getName());
         existing.setEinarbeitung(wissensbereich.getEinarbeitung());
         existing.setWissensgebiet(gebiet);
         Wissensbereich updated = wissensbereichRepository.save(existing);
+        // Wenn Einarbeitung von true auf false geändert wurde, alle zugehörigen Wissensbausteine ebenfalls auf false setzen
+        if (einarbeitungAlt && !einarbeitungNeu && existing.getWissensbausteine() != null) {
+            var bausteine = existing.getWissensbausteine();
+            boolean changed = false;
+            for (var baustein : bausteine) {
+                if (Boolean.TRUE.equals(baustein.getEinarbeitung())) {
+                    baustein.setEinarbeitung(false);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                wissensbausteinRepository.saveAll(bausteine);
+            }
+        }
         return ResponseEntity.ok(toDto(updated));
     }
 

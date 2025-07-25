@@ -26,7 +26,6 @@ public class WissensbausteinService {
         Wissensbaustein wissensbaustein = new Wissensbaustein();
         wissensbaustein.setName(dto.name);
         wissensbaustein.setLevel(Wissensbaustein.Level.valueOf(dto.level));
-        wissensbaustein.setEinarbeitung(dto.einarbeitung);
         if (dto.reihenfolge < 1 || dto.reihenfolge > 10) {
             return "Reihenfolge muss zwischen 1 und 10 liegen.";
         }
@@ -41,6 +40,11 @@ public class WissensbausteinService {
         if (bereich.getWissensgebiet() == null || !bereich.getWissensgebiet().getId().equals(dto.wissensgebietId)) {
             return "Der Wissensbereich gehört nicht zum angegebenen Wissensgebiet.";
         }
+        // Einarbeitung nur erlauben, wenn der Bereich für Einarbeitung vorgesehen ist
+        if (dto.einarbeitung && (bereich.getEinarbeitung() == null || !bereich.getEinarbeitung())) {
+            return "Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.";
+        }
+        wissensbaustein.setEinarbeitung(dto.einarbeitung);
         boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich(dto.name, bereich);
         if (exists) {
             return "Ein Wissensbaustein mit diesem Namen existiert bereits in diesem Wissensbereich.";
@@ -82,6 +86,10 @@ public class WissensbausteinService {
             }
         } else {
             return "Wissensbereich und Wissensgebiet müssen angegeben werden.";
+        }
+        // Einarbeitung nur erlauben, wenn der Bereich für Einarbeitung vorgesehen ist
+        if (dto.einarbeitung && (bereich.getEinarbeitung() == null || !bereich.getEinarbeitung())) {
+            return "Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.";
         }
         boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich(dto.name, bereich);
         if (exists && !existing.getId().equals(id)) {
