@@ -15,15 +15,6 @@ public class Ausbildungspfad {
     @Column(length = 2000)
     private String inhalt;
 
-    private String organisation;
-    private String artDerAusbildung;
-    private String geschaetzteDauer;
-    private String arbeitsauftrag;
-    private String verortung;
-    private String pfad;
-    private String dateiname;
-    private String ansprechpartner;
-
     @ManyToMany(mappedBy = "ausbildungspfade")
     private List<Wissensbaustein> wissensbausteine;
 
