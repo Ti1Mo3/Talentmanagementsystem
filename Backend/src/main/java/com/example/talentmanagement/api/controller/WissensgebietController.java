@@ -20,12 +20,6 @@ public class WissensgebietController {
         this.wissensgebietService = wissensgebietService;
     }
 
-    @Operation(summary = "Fügt ein neues Wissensgebiet hinzu", description = "Legt ein neues Wissensgebiet mit dem angegebenen Namen und Einarbeitung an.")
-    @PostMapping
-    public ResponseEntity<?> addWissensgebiet(@Valid @RequestBody Wissensgebiet wissensgebiet) {
-        return wissensgebietService.addWissensgebiet(wissensgebiet);
-    }
-
     @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.")
     @GetMapping
     public ResponseEntity<List<Wissensgebiet>> getAllWissensgebiete() {
@@ -33,13 +27,7 @@ public class WissensgebietController {
         return ResponseEntity.ok(list);
     }
 
-    @Operation(summary = "Aktualisiert ein Wissensgebiet", description = "Aktualisiert den Namen und das Einarbeitung-Flag eines bestehenden Wissensgebiets anhand der ID.")
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateWissensgebiet(@PathVariable Long id, @Valid @RequestBody Wissensgebiet wissensgebiet) {
-        return wissensgebietService.updateWissensgebiet(id, wissensgebiet);
-    }
-
-    @Operation(summary = "Löscht ein Wissensgebiet", description = "Löscht ein Wissensgebiet anhand der ID.")
+    @Operation(summary = "Löscht ein Wissensgebiet", description = "Löscht ein Wissensgebiet anhand seiner ID.")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteWissensgebiet(@PathVariable Long id) {
         return wissensgebietService.deleteWissensgebiet(id);
