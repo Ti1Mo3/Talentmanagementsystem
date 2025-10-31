@@ -42,7 +42,7 @@ public class WissensbausteinController {
     public ResponseEntity<?> addWissensbaustein(@Valid @RequestBody WissensbausteinDto wissensbausteinDto) {
         return wissensbausteinService.addWissensbaustein(wissensbausteinDto);
     }
-    
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateWissensbaustein(@PathVariable Long id, @Valid @RequestBody WissensbausteinDto wissensbausteinDto) {
         return wissensbausteinService.updateWissensbaustein(id, wissensbausteinDto);
@@ -57,6 +57,7 @@ public class WissensbausteinController {
     public ResponseEntity<?> deleteWissensbaustein(@PathVariable Long id) {
         return wissensbausteinService.deleteWissensbaustein(id);
     }
+    //
 
     private WissensbausteinDto toDto(Wissensbaustein entity) {
         WissensbausteinDto dto = new WissensbausteinDto();
