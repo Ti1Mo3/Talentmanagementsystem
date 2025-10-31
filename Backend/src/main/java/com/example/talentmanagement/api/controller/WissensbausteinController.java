@@ -42,13 +42,7 @@ public class WissensbausteinController {
     public ResponseEntity<?> addWissensbaustein(@Valid @RequestBody WissensbausteinDto wissensbausteinDto) {
         return wissensbausteinService.addWissensbaustein(wissensbausteinDto);
     }
-
-    @Operation(summary = "Aktualisiert einen Wissensbaustein", description = "Aktualisiert einen vorhandenen Wissensbaustein anhand seiner ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Wissensbaustein erfolgreich aktualisiert"),
-            @ApiResponse(responseCode = "400", description = "Ungültige Eingabe"),
-            @ApiResponse(responseCode = "404", description = "Wissensbaustein nicht gefunden")
-    })
+    
     @PutMapping("/{id}")
     public ResponseEntity<?> updateWissensbaustein(@PathVariable Long id, @Valid @RequestBody WissensbausteinDto wissensbausteinDto) {
         return wissensbausteinService.updateWissensbaustein(id, wissensbausteinDto);
