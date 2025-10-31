@@ -21,17 +21,6 @@ public class WissensgebietController {
     public WissensgebietController(WissensgebietService wissensgebietService) {
         this.wissensgebietService = wissensgebietService;
     }
-
-    @Operation(summary = "Liefert alle Wissensgebiete", description = "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Wissensgebiete erfolgreich abgerufen")
-    })
-    @GetMapping
-    public ResponseEntity<List<Wissensgebiet>> getAllWissensgebiete() {
-        List<Wissensgebiet> list = wissensgebietService.getAllWissensgebiete();
-        return ResponseEntity.ok(list);
-    }
-
     @Operation(summary = "Erstellt ein neues Wissensgebiet", description = "Erstellt ein neues Wissensgebiet.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Wissensgebiet erfolgreich erstellt"),
@@ -41,6 +30,7 @@ public class WissensgebietController {
     public ResponseEntity<?> addWissensgebiet(@Valid @RequestBody Wissensgebiet wissensgebiet) {
         return wissensgebietService.addWissensgebiet(wissensgebiet);
     }
+
 
     @Operation(summary = "Aktualisiert ein Wissensgebiet", description = "Aktualisiert ein vorhandenes Wissensgebiet anhand seiner ID.")
     @ApiResponses(value = {
@@ -52,6 +42,7 @@ public class WissensgebietController {
     public ResponseEntity<?> updateWissensgebiet(@PathVariable Long id, @Valid @RequestBody Wissensgebiet wissensgebiet) {
         return wissensgebietService.updateWissensgebiet(id, wissensgebiet);
     }
+
 
     @Operation(summary = "Löscht ein Wissensgebiet", description = "Löscht ein Wissensgebiet anhand seiner ID.")
     @ApiResponses(value = {
