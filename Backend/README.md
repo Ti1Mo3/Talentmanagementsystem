@@ -24,7 +24,13 @@ Dieses Projekt ist die Backend REST API für das Talentmanagementsystem.
 
 ## Starten
 
-Mit folgendem Befehl im Projektverzeichnis starten:
+Um die Anwendung zu starten und die `openapi.json` zu generieren, führe zuerst das Packaging aus:
+
+```
+./mvnw package
+```
+
+Danach kann die Anwendung mit folgendem Befehl gestartet werden:
 
 ```
 ./mvnw spring-boot:run

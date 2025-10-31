@@ -66,9 +66,29 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			<configuration>
-				<mainClass>com.example.talentmanagement.TalentManagementBackendApplication</mainClass>
-			</configuration>
+				<configuration>
+					<mainClass>com.example.talentmanagement.TalentManagementBackendApplication</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<id>generate-openapi</id>
+						<phase>package</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>org.springdoc.maven.plugin.SpringDocMojo</mainClass>
+							<arguments>
+								<argument>generate</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,0 +1,624 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Talent Management Backend REST API",
+        "description": "Backend REST API for the Talent Management System.",
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://springdoc.org"
+        },
+        "version": "v1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "paths": {
+        "/api/wissensgebiet/{id}": {
+            "put": {
+                "tags": [
+                    "wissensgebiet-controller"
+                ],
+                "summary": "Aktualisiert ein Wissensgebiet",
+                "description": "Aktualisiert ein vorhandenes Wissensgebiet anhand seiner ID.",
+                "operationId": "updateWissensgebiet",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/com.example.talentmanagement.entity.Wissensgebiet"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Ungültige Eingabe, z.B. wenn der Name bereits existiert",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Wissensgebiet erfolgreich aktualisiert",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Wissensgebiet nicht gefunden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "wissensgebiet-controller"
+                ],
+                "summary": "Löscht ein Wissensgebiet",
+                "description": "Löscht ein Wissensgebiet anhand seiner ID.",
+                "operationId": "deleteWissensgebiet",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Wissensgebiet kann nicht gelöscht werden, da noch Wissensbereiche zugeordnet sind",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "Wissensgebiet erfolgreich gelöscht",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Wissensgebiet nicht gefunden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wissensbereich/{id}": {
+            "put": {
+                "tags": [
+                    "wissensbereich-controller"
+                ],
+                "summary": "Aktualisiert einen Wissensbereich",
+                "description": "Aktualisiert einen vorhandenen Wissensbereich anhand seiner ID.",
+                "operationId": "updateWissensbereich",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/com.example.talentmanagement.api.dto.WissensbereichDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Ungültige Eingabe",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Wissensbereich nicht gefunden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Wissensbereich erfolgreich aktualisiert",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "wissensbereich-controller"
+                ],
+                "summary": "Löscht einen Wissensbereich",
+                "description": "Löscht einen Wissensbereich anhand seiner ID.",
+                "operationId": "deleteWissensbereich",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Wissensbereich nicht gefunden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Wissensbereich kann nicht gelöscht werden, da noch Wissensbausteine zugeordnet sind",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "Wissensbereich erfolgreich gelöscht",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wissensbaustein/{id}": {
+            "put": {
+                "tags": [
+                    "wissensbaustein-controller"
+                ],
+                "summary": "Aktualisiert einen Wissensbaustein",
+                "description": "Aktualisiert einen vorhandenen Wissensbaustein anhand seiner ID.",
+                "operationId": "updateWissensbaustein",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/com.example.talentmanagement.api.dto.WissensbausteinDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "404": {
+                        "description": "Wissensbaustein nicht gefunden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ungültige Eingabe",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Wissensbaustein erfolgreich aktualisiert",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "wissensbaustein-controller"
+                ],
+                "summary": "Löscht einen Wissensbaustein",
+                "description": "Löscht einen Wissensbaustein anhand seiner ID.",
+                "operationId": "deleteWissensbaustein",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Wissensbaustein nicht gefunden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "Wissensbaustein erfolgreich gelöscht",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wissensgebiet": {
+            "get": {
+                "tags": [
+                    "wissensgebiet-controller"
+                ],
+                "summary": "Liefert alle Wissensgebiete",
+                "description": "Gibt eine Liste aller vorhandenen Wissensgebiete inklusive Einarbeitung zurück.",
+                "operationId": "getAllWissensgebiete",
+                "responses": {
+                    "200": {
+                        "description": "Wissensgebiete erfolgreich abgerufen",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/com.example.talentmanagement.entity.Wissensgebiet"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "wissensgebiet-controller"
+                ],
+                "summary": "Erstellt ein neues Wissensgebiet",
+                "description": "Erstellt ein neues Wissensgebiet.",
+                "operationId": "addWissensgebiet",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/com.example.talentmanagement.entity.Wissensgebiet"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Ungültige Eingabe, z.B. wenn der Name bereits existiert",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Wissensgebiet erfolgreich erstellt",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wissensbereich": {
+            "get": {
+                "tags": [
+                    "wissensbereich-controller"
+                ],
+                "summary": "Liefert alle Wissensbereiche",
+                "description": "Gibt eine Liste aller vorhandenen Wissensbereiche zurück. Wissensbausteine werden nicht mitgeliefert.",
+                "operationId": "getAllWissensbereiche",
+                "responses": {
+                    "200": {
+                        "description": "Wissensbereiche erfolgreich abgerufen",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/com.example.talentmanagement.api.dto.WissensbereichDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "wissensbereich-controller"
+                ],
+                "summary": "Erstellt einen neuen Wissensbereich",
+                "description": "Erstellt einen neuen Wissensbereich.",
+                "operationId": "addWissensbereich",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/com.example.talentmanagement.api.dto.WissensbereichDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Ungültige Eingabe, z.B. wenn der Name bereits existiert oder das Wissensgebiet nicht für Einarbeitung markiert ist",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Wissensbereich erfolgreich erstellt",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wissensbaustein": {
+            "get": {
+                "tags": [
+                    "wissensbaustein-controller"
+                ],
+                "summary": "Liefert alle Wissensbausteine",
+                "description": "Gibt eine Liste aller vorhandenen Wissensbausteine zurück.",
+                "operationId": "getAllWissensbausteine",
+                "responses": {
+                    "200": {
+                        "description": "Wissensbausteine erfolgreich abgerufen",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/com.example.talentmanagement.api.dto.WissensbausteinDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "wissensbaustein-controller"
+                ],
+                "summary": "Erstellt einen neuen Wissensbaustein",
+                "description": "Erstellt einen neuen Wissensbaustein.",
+                "operationId": "addWissensbaustein",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/com.example.talentmanagement.api.dto.WissensbausteinDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Ungültige Eingabe",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Wissensbaustein erfolgreich erstellt",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "com.example.talentmanagement.entity.Wissensgebiet": {
+                "required": [
+                    "einarbeitung",
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name des Wissensgebiets",
+                        "example": "ABAP"
+                    },
+                    "einarbeitung": {
+                        "type": "boolean",
+                        "description": "Gibt an, ob das Wissensgebiet eingearbeitet werden muss",
+                        "example": true
+                    }
+                }
+            },
+            "com.example.talentmanagement.api.dto.WissensbereichDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "einarbeitung": {
+                        "type": "boolean"
+                    },
+                    "wissensgebietId": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "com.example.talentmanagement.api.dto.WissensbausteinDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "einarbeitung": {
+                        "type": "boolean"
+                    },
+                    "reihenfolge": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "wissensbereichId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "wissensgebietId": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            }
+        }
+    }
+}

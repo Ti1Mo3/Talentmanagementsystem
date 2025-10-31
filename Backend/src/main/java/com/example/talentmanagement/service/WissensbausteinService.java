@@ -6,6 +6,7 @@ import com.example.talentmanagement.entity.Wissensbereich;
 import com.example.talentmanagement.repository.WissensbausteinRepository;
 import com.example.talentmanagement.repository.WissensbereichRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,27 +23,45 @@ public class WissensbausteinService {
         this.wissensbereichRepository = wissensbereichRepository;
     }
 
-    public Object addWissensbaustein(WissensbausteinDto dto) {
+    public WissensbausteinDto toDto(Wissensbaustein entity) {
+        WissensbausteinDto dto = new WissensbausteinDto();
+        dto.id = entity.getId();
+        dto.name = entity.getName();
+        dto.level = entity.getLevel().name();
+        dto.einarbeitung = entity.getEinarbeitung();
+        dto.reihenfolge = entity.getReihenfolge().getValue();
+        dto.wissensbereichId = entity.getWissensbereich() != null ? entity.getWissensbereich().getId() : null;
+        dto.wissensgebietId = (entity.getWissensbereich() != null && entity.getWissensbereich().getWissensgebiet() != null)
+                ? entity.getWissensbereich().getWissensgebiet().getId()
+                : null;
+        return dto;
+    }
+
+    private ResponseEntity<String> badRequest(String message) {
+        return ResponseEntity.badRequest().body(message);
+    }
+
+    public ResponseEntity<?> addWissensbaustein(WissensbausteinDto dto) {
         Wissensbaustein wissensbaustein = new Wissensbaustein();
         wissensbaustein.setName(dto.name);
         wissensbaustein.setLevel(Wissensbaustein.Level.valueOf(dto.level));
         if (dto.reihenfolge < 1 || dto.reihenfolge > 10) {
-            return "Reihenfolge muss zwischen 1 und 10 liegen.";
+            return badRequest("Reihenfolge muss zwischen 1 und 10 liegen.");
         }
         wissensbaustein.setReihenfolge(Wissensbaustein.Reihenfolge.values()[dto.reihenfolge - 1]);
         if (dto.wissensbereichId == null || dto.wissensgebietId == null) {
-            return "Wissensbereich und Wissensgebiet müssen angegeben werden.";
+            return badRequest("Wissensbereich und Wissensgebiet müssen angegeben werden.");
         }
         Wissensbereich bereich = wissensbereichRepository.findById(dto.wissensbereichId).orElse(null);
         if (bereich == null) {
-            return "Wissensbereich nicht gefunden.";
+            return badRequest("Wissensbereich nicht gefunden.");
         }
         if (bereich.getWissensgebiet() == null || !bereich.getWissensgebiet().getId().equals(dto.wissensgebietId)) {
-            return "Der Wissensbereich gehört nicht zum angegebenen Wissensgebiet.";
+            return badRequest("Der Wissensbereich gehört nicht zum angegebenen Wissensgebiet.");
         }
         // Einarbeitung nur erlauben, wenn der Bereich für Einarbeitung vorgesehen ist
         if (dto.einarbeitung && (bereich.getEinarbeitung() == null || !bereich.getEinarbeitung())) {
-            return "Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.";
+            return badRequest("Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.");
         }
         wissensbaustein.setEinarbeitung(dto.einarbeitung);
         // Prüfe, ob die Kombination aus Name, Wissensbereich und Wissensgebiet eindeutig ist
@@ -50,75 +69,62 @@ public class WissensbausteinService {
             dto.name, bereich.getName(), dto.wissensgebietId
         );
         if (exists) {
-            return "Ein Wissensbaustein mit diesem Namen existiert bereits in dieser Kombination aus Wissensgebiet und Wissensbereich.";
+            return badRequest("Ein Wissensbaustein mit diesem Namen existiert bereits in dieser Kombination aus Wissensgebiet und Wissensbereich.");
         }
         wissensbaustein.setWissensbereich(bereich);
         Wissensbaustein saved = wissensbausteinRepository.save(wissensbaustein);
-        return saved;
+        return ResponseEntity.ok(toDto(saved));
     }
 
     public List<Wissensbaustein> getAllWissensbausteine() {
         List<Wissensbaustein> bausteine = wissensbausteinRepository.findAll();
         return bausteine;
-        // Falls die Controller-Ebene ein DTO erwartet, sollte hier eine Umwandlung erfolgen:
-        // return bausteine.stream().map(b -> {
-        //     WissensbausteinDto dto = new WissensbausteinDto();
-        //     dto.id = b.getId();
-        //     dto.name = b.getName();
-        //     dto.level = b.getLevel().name();
-        //     dto.einarbeitung = b.getEinarbeitung();
-        //     dto.reihenfolge = b.getReihenfolge().ordinal() + 1;
-        //     dto.wissensbereichId = b.getWissensbereich() != null ? b.getWissensbereich().getId() : null;
-        //     dto.wissensgebietId = (b.getWissensbereich() != null && b.getWissensbereich().getWissensgebiet() != null) ? b.getWissensbereich().getWissensgebiet().getId() : null;
-        //     return dto;
-        // }).collect(Collectors.toList());
     }
 
-    public Object updateWissensbaustein(Long id, WissensbausteinDto dto) {
+    public ResponseEntity<?> updateWissensbaustein(Long id, WissensbausteinDto dto) {
         Optional<Wissensbaustein> opt = wissensbausteinRepository.findById(id);
-        if (opt.isEmpty()) return null;
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
         Wissensbaustein existing = opt.get();
         Wissensbereich bereich = null;
         if (dto.wissensbereichId != null && dto.wissensgebietId != null) {
             bereich = wissensbereichRepository.findById(dto.wissensbereichId).orElse(null);
             if (bereich == null) {
-                return "Wissensbereich nicht gefunden.";
+                return badRequest("Wissensbereich nicht gefunden.");
             }
             if (bereich.getWissensgebiet() == null || !bereich.getWissensgebiet().getId().equals(dto.wissensgebietId)) {
-                return "Der Wissensbereich gehört nicht zum angegebenen Wissensgebiet.";
+                return badRequest("Der Wissensbereich gehört nicht zum angegebenen Wissensgebiet.");
             }
         } else {
-            return "Wissensbereich und Wissensgebiet müssen angegeben werden.";
+            return badRequest("Wissensbereich und Wissensgebiet müssen angegeben werden.");
         }
         // Einarbeitung nur erlauben, wenn der Bereich für Einarbeitung vorgesehen ist
         if (dto.einarbeitung && (bereich.getEinarbeitung() == null || !bereich.getEinarbeitung())) {
-            return "Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.";
+            return badRequest("Einarbeitung kann nur gesetzt werden, wenn der zugehörige Wissensbereich für Einarbeitung vorgesehen ist.");
         }
         boolean exists = wissensbausteinRepository.existsByNameAndWissensbereich_NameAndWissensbereich_Wissensgebiet_Id(
             dto.name, bereich.getName(), dto.wissensgebietId
         );
         if (exists && !existing.getId().equals(id)) {
-            return "Ein Wissensbaustein mit diesem Namen existiert bereits in dieser Kombination aus Wissensgebiet und Wissensbereich.";
+            return badRequest("Ein Wissensbaustein mit diesem Namen existiert bereits in dieser Kombination aus Wissensgebiet und Wissensbereich.");
         }
         existing.setName(dto.name);
         existing.setLevel(Wissensbaustein.Level.valueOf(dto.level));
-        existing.setEinarbeitung(dto.einarbeitung);
         if (dto.reihenfolge < 1 || dto.reihenfolge > 10) {
-            return "Reihenfolge muss zwischen 1 und 10 liegen.";
+            return badRequest("Reihenfolge muss zwischen 1 und 10 liegen.");
         }
         existing.setReihenfolge(Wissensbaustein.Reihenfolge.values()[dto.reihenfolge - 1]);
+        existing.setEinarbeitung(dto.einarbeitung);
         existing.setWissensbereich(bereich);
         Wissensbaustein updated = wissensbausteinRepository.save(existing);
-        return updated;
+        return ResponseEntity.ok(toDto(updated));
     }
 
-    public boolean deleteWissensbaustein(Long id) {
-        if (wissensbausteinRepository.existsById(id)) {
-            wissensbausteinRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
+    public ResponseEntity<?> deleteWissensbaustein(Long id) {
+        if (!wissensbausteinRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
         }
+        wissensbausteinRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     public List<Wissensbaustein> getWissensbausteineByWissensbereich(Long wissensbereichId) {

@@ -116,6 +116,17 @@ public class WissensbereichService {
         return ResponseEntity.ok(toDto(updated));
     }
 
+    public ResponseEntity<?> deleteWissensbereich(Long id) {
+        if (!wissensbereichRepository.existsById(id)) {
+            return ResponseEntity.status(404).body("Der Wissensbereich mit der angegebenen ID wurde nicht gefunden.");
+        }
+        if (wissensbausteinRepository.existsByWissensbereich_Id(id)) {
+            return badRequest("Um den Wissensbereich zu löschen, müssen zuerst alle zugehörigen Wissensbausteine gelöscht werden.");
+        }
+        wissensbereichRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
     public List<WissensbereichDto> getAllWissensbereiche() {
         return wissensbereichRepository.findAllByOrderByWissensgebiet_NameAscNameAsc()
                 .stream().map(this::toDto).toList();
